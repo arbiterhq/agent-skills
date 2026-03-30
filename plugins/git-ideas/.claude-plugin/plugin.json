@@ -1,0 +1,9 @@
+{
+  "name": "git-ideas",
+  "version": "0.1.0",
+  "description": "Intelligent git workflow management with worktrees, atomic commits, GitHub integration, and change stacking.",
+  "author": {
+    "name": "Mike Riley",
+    "email": "mike@posthuman.help"
+  }
+}

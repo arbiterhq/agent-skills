@@ -1,0 +1,51 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agent-skills",
+  "version": "1.0.0",
+  "description": "Cross-platform agent skills for browser automation, image generation and manipulation, and intelligent git workflows. By Posthuman Resources LLC.",
+  "owner": {
+    "name": "Posthuman Resources LLC",
+    "email": "mike@posthuman.help"
+  },
+  "plugins": [
+    {
+      "name": "browser-buddy",
+      "description": "Browser automation skill wrapping Vercel's agent-browser CLI with additional patterns for scraping, testing, form-filling, and visual diffing. Use when the user needs to interact with websites, fill forms, take screenshots, scrape data, or automate browser tasks.",
+      "source": "./plugins/browser-buddy",
+      "category": "automation",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Riley",
+        "email": "mike@posthuman.help"
+      },
+      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/browser-buddy",
+      "keywords": ["browser", "automation", "scraping", "testing", "screenshots"]
+    },
+    {
+      "name": "artistic-vision",
+      "description": "Image understanding, generation, and manipulation using Nano Banana APIs (Gemini image models) and Sharp/ImageMagick for processing. Use when the user needs to generate images from prompts, edit existing images, resize, convert formats, extract metadata, create transparent assets, or do visual analysis.",
+      "source": "./plugins/artistic-vision",
+      "category": "creative",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Riley",
+        "email": "mike@posthuman.help"
+      },
+      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/artistic-vision",
+      "keywords": ["image", "generation", "nano-banana", "sharp", "vision", "creative"]
+    },
+    {
+      "name": "git-ideas",
+      "description": "Intelligent git workflow management: worktrees for parallel development, atomic commits following a one-idea-per-commit philosophy, GitHub PR workflows, change stacking, and merge strategies. Use when the user wants to commit changes, manage branches, create PRs, work in parallel with worktrees, or organize their git history.",
+      "source": "./plugins/git-ideas",
+      "category": "development",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Riley",
+        "email": "mike@posthuman.help"
+      },
+      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/git-ideas",
+      "keywords": ["git", "worktrees", "commits", "github", "stacking", "workflow"]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "agent-skills",
+  "version": "1.0.0",
+  "description": "Cross-platform agent skills for browser automation, image generation, and git workflows."
+}
