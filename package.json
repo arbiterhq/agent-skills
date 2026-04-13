@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Cross-platform agent skills for Claude Code, Codex CLI, and Gemini CLI.",
   "private": true,
-  "workspaces": ["plugins/*"],
+  "workspaces": [
+    "plugins/*"
+  ],
   "packageManager": "bun@1.3.5",
   "author": {
     "name": "Posthuman Resources LLC",
@@ -13,5 +15,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/arbiterhq/agent-skills"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.8.2",
+    "prettier-plugin-sh": "^0.18.1"
   }
 }

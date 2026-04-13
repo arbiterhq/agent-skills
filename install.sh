@@ -9,9 +9,9 @@ CLAUDE_CODE=false
 CODEX=false
 GEMINI=false
 
-if command -v claude &>/dev/null; then CLAUDE_CODE=true; fi
-if command -v codex &>/dev/null; then CODEX=true; fi
-if command -v gemini &>/dev/null; then GEMINI=true; fi
+if command -v claude &> /dev/null; then CLAUDE_CODE=true; fi
+if command -v codex &> /dev/null; then CODEX=true; fi
+if command -v gemini &> /dev/null; then GEMINI=true; fi
 
 REPO_URL="https://github.com/arbiterhq/agent-skills"
 
