@@ -1,7 +1,7 @@
 {
   "name": "artistic-vision",
-  "version": "0.1.0",
-  "description": "Image understanding, generation, and manipulation using Nano Banana APIs and Sharp/ImageMagick.",
+  "version": "0.2.0",
+  "description": "Gemini-powered image intelligence (describe, generate, edit, ocr, detect, extract, diff, compare, analyze, batch) plus Sharp-powered local manipulation (info, resize, upscale, crop, palette, optimize, convert, sprite sheets).",
   "author": {
     "name": "Mike Riley",
     "email": "mike@posthuman.help"

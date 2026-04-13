@@ -1,0 +1,3 @@
+#!/bin/bash
+set -e
+exec bun "$(dirname "$0")/../scripts/index.ts" "$@"

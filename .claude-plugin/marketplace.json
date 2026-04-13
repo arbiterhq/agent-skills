@@ -23,16 +23,27 @@
     },
     {
       "name": "artistic-vision",
-      "description": "Image understanding, generation, and manipulation using Nano Banana APIs (Gemini image models) and Sharp/ImageMagick for processing. Use when the user needs to generate images from prompts, edit existing images, resize, convert formats, extract metadata, create transparent assets, or do visual analysis.",
+      "description": "Gemini-powered image intelligence (describe, generate, edit, ocr, detect, extract, diff, compare, analyze, batch) plus Sharp-powered local manipulation (info, resize, upscale, crop, palette, optimize, convert, sprite sheets). Use when the user needs to understand, create, edit, or process images.",
       "source": "./plugins/artistic-vision",
       "category": "creative",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Mike Riley",
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/artistic-vision",
-      "keywords": ["image", "generation", "nano-banana", "sharp", "vision", "creative"]
+      "keywords": [
+        "image",
+        "generation",
+        "editing",
+        "gemini",
+        "sharp",
+        "vision",
+        "ocr",
+        "detection",
+        "sprite-sheet",
+        "creative"
+      ]
     },
     {
       "name": "git-ideas",
