@@ -1,0 +1,11 @@
+{
+  "name": "browser-buddy",
+  "version": "0.1.0",
+  "description": "Browser automation skill wrapping Vercel's agent-browser CLI with additional patterns for scraping, testing, form-filling, and visual diffing.",
+  "private": true,
+  "author": {
+    "name": "Mike Riley",
+    "email": "mike@posthuman.help"
+  },
+  "license": "MIT"
+}

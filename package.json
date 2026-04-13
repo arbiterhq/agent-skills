@@ -1,0 +1,17 @@
+{
+  "name": "agent-skills",
+  "version": "1.0.0",
+  "description": "Cross-platform agent skills for Claude Code, Codex CLI, and Gemini CLI.",
+  "private": true,
+  "workspaces": ["plugins/*"],
+  "packageManager": "bun@1.3.5",
+  "author": {
+    "name": "Posthuman Resources LLC",
+    "email": "mike@posthuman.help"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arbiterhq/agent-skills"
+  }
+}

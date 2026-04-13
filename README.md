@@ -61,14 +61,28 @@ Works with Claude Code, Codex, Gemini CLI, Cursor, and 40+ other agents:
 npx skills add arbiterhq/agent-skills
 ```
 
+## Development
+
+This repo is a [Bun](https://bun.com) workspace. To get started:
+
+```bash
+bun install
+```
+
+Each plugin under `plugins/*` is a workspace member. The root package is private and not published to npm; distribution happens via the Git repo itself (see Installation above).
+
 ## Repository Structure
 
 ```
 agent-skills/
+  package.json                      # Bun workspace root (private)
   .claude-plugin/marketplace.json   # Claude Code marketplace manifest
   gemini-extension.json             # Gemini CLI extension manifest
   plugins/                          # Canonical skill sources (Claude Code plugins)
     browser-buddy/
+      package.json                  # Workspace member
+      .claude-plugin/plugin.json    # Claude Code plugin manifest
+      skills/browser-buddy/SKILL.md
     artistic-vision/
     git-ideas/
   skills/                           # Symlinks for Codex and Gemini discovery

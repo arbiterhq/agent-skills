@@ -1,0 +1,28 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "agent-skills",
+    },
+    "plugins/artistic-vision": {
+      "name": "artistic-vision",
+      "version": "0.1.0",
+    },
+    "plugins/browser-buddy": {
+      "name": "browser-buddy",
+      "version": "0.1.0",
+    },
+    "plugins/git-ideas": {
+      "name": "git-ideas",
+      "version": "0.1.0",
+    },
+  },
+  "packages": {
+    "artistic-vision": ["artistic-vision@workspace:plugins/artistic-vision"],
+
+    "browser-buddy": ["browser-buddy@workspace:plugins/browser-buddy"],
+
+    "git-ideas": ["git-ideas@workspace:plugins/git-ideas"],
+  }
+}

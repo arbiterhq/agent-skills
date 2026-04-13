@@ -1,0 +1,11 @@
+{
+  "name": "artistic-vision",
+  "version": "0.1.0",
+  "description": "Image understanding, generation, and manipulation using Nano Banana APIs and Sharp/ImageMagick.",
+  "private": true,
+  "author": {
+    "name": "Mike Riley",
+    "email": "mike@posthuman.help"
+  },
+  "license": "MIT"
+}

@@ -22,3 +22,4 @@ This repo distributes agent skills for Claude Code, Codex CLI, and Gemini CLI.
 - Use progressive disclosure: reference files for detailed docs
 - Scripts should be bash with set -e, status to stderr, output to stdout
 - Never use em dashes or en dashes in any written content
+- Use `bun` as the package manager. The repo is a Bun workspace with `plugins/*` as members.
