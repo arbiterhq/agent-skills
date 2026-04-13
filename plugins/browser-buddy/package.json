@@ -1,7 +1,7 @@
 {
   "name": "browser-buddy",
-  "version": "0.1.0",
-  "description": "Browser automation skill wrapping Vercel's agent-browser CLI with additional patterns for scraping, testing, form-filling, and visual diffing.",
+  "version": "0.2.0",
+  "description": "Browser automation via Vercel's agent-browser CLI, vendored through Bun workspaces.",
   "private": true,
   "author": {
     "name": "Mike Riley",
@@ -10,6 +10,10 @@
   "license": "MIT",
   "scripts": {
     "format": "prettier --write ."
+  },
+  "dependencies": {
+    "agent-browser": "^0.3.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "prettier": "^3.8.2",

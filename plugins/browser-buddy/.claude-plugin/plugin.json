@@ -1,7 +1,7 @@
 {
   "name": "browser-buddy",
   "version": "0.1.0",
-  "description": "Browser automation skill wrapping Vercel's agent-browser CLI with additional patterns for scraping, testing, form-filling, and visual diffing.",
+  "description": "Browser automation via Vercel's agent-browser CLI. Drives real Chrome for navigation, form filling, scraping, screenshotting, video recording, and web app testing. Built around the snapshot-ref interaction pattern for token-efficient agent use.",
   "author": {
     "name": "Mike Riley",
     "email": "mike@posthuman.help"

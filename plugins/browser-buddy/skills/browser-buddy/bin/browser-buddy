@@ -1,0 +1,9 @@
+#!/bin/bash
+# browser-buddy: thin shim that delegates to scripts/buddy.ts via bun.
+# Bun is the only external system dependency; the underlying agent-browser
+# binary is resolved by the bun script from the workspace's node_modules.
+
+set -e
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+exec bun "$HERE/../scripts/buddy.ts" "$@"
