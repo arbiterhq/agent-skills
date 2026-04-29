@@ -13,7 +13,7 @@
       "description": "Browser automation skill wrapping Vercel's agent-browser CLI with additional patterns for scraping, testing, form-filling, and visual diffing. Use when the user needs to interact with websites, fill forms, take screenshots, scrape data, or automate browser tasks.",
       "source": "./plugins/browser-buddy",
       "category": "automation",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Mike Riley",
         "email": "mike@posthuman.help"

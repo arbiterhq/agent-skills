@@ -17,7 +17,8 @@ bin/browser-buddy screenshot                        # omit path: passthrough to 
 A few common patterns:
 
 ```bash
-# Annotated screenshot with numbered overlays (good for agent reasoning about positions):
+# Annotated screenshot with numbered overlays keyed to snapshot refs
+# (good for multimodal models reasoning about positions):
 bin/browser-buddy screenshot --annotate ./annotated.jpg
 
 # Dark-mode capture:
@@ -49,35 +50,44 @@ bin/browser-buddy record start ./demo.webm
 bin/browser-buddy record stop
 ```
 
-To discard the first take and try again without stopping:
+To stop the current take and start a fresh one in a single call:
 
 ```bash
 bin/browser-buddy record restart ./take2.webm
 ```
 
-Output is WebM (VP8/VP9) by default. Any modern browser or video player opens it. For smaller files, run the result through `ffmpeg` afterward.
+Output is WebM (VP8/VP9). Any modern browser or video player opens it. For smaller files or GIF export, run the result through `ffmpeg` afterward.
 
 Practical notes:
 
-- Recording is session-scoped. If you're capturing a specific flow, run everything under the same `--session`.
-- Long recordings accumulate on disk; don't forget to `record stop` and clean up.
+- Recording is session-scoped. Pass the same `--session` to every command if you want one continuous video.
+- Long recordings accumulate on disk; `record stop` and clean up.
 - Record at a consistent viewport (`set viewport 1280 800` before `record start`) so the result isn't resized mid-video.
+- Some headless environments may have codec limitations.
 
 ## Visual diffing
 
-`bin/browser-buddy diff screenshot <a> <b>` produces a visual diff between two screenshots. Useful for regression checks. This is one of the cases where PNG is the right format: pixel-level diffing needs lossless input.
+`diff screenshot` compares the **current page** to a baseline image — it's not a two-file comparator.
 
 ```bash
+# First run: capture the baseline.
 bin/browser-buddy open https://example.com/pricing
-bin/browser-buddy screenshot --full ./baselines/pricing.png  # first run
+bin/browser-buddy screenshot --full ./baselines/pricing.png
 
-# later, after a deploy:
+# Later, after a deploy, compare the live page against that baseline:
 bin/browser-buddy open https://example.com/pricing
-bin/browser-buddy screenshot --full ./current/pricing.png
-bin/browser-buddy diff screenshot ./baselines/pricing.png ./current/pricing.png
+bin/browser-buddy diff screenshot --baseline ./baselines/pricing.png
+
+# Save the rendered diff to a file for review:
+bin/browser-buddy diff screenshot --baseline ./baselines/pricing.png -o ./diff.png
+
+# Loosen the per-pixel threshold:
+bin/browser-buddy diff screenshot --baseline ./baselines/pricing.png -t 0.2
 ```
 
-`diff snapshot` and `diff url` do the same for accessibility trees and URL state, respectively.
+`diff snapshot` does the same for accessibility trees (current vs. last snapshot, or vs. a saved file via `--baseline`). `diff url <a> <b>` compares two URLs side-by-side; add `--screenshot` to also produce a visual diff.
+
+PNG baselines are correct here: pixel-level diffing needs lossless input.
 
 ## Choosing which capture
 
@@ -87,5 +97,5 @@ bin/browser-buddy diff screenshot ./baselines/pricing.png ./current/pricing.png
 | Document a bug visually | `screenshot --full` |
 | Archive a page | `pdf` |
 | Show a workflow end-to-end | `record start` / `record stop` |
-| Detect visual regression | `screenshot` + `diff screenshot` |
-| Let an agent reason about layout | `screenshot --annotate` |
+| Detect visual regression | `screenshot` (baseline) + `diff screenshot --baseline` |
+| Let a multimodal model reason about layout | `screenshot --annotate` |

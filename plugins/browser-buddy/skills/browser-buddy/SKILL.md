@@ -21,9 +21,11 @@ Bun is the only external system dependency. The `agent-browser` binary is a work
 # Once, from the agent-skills repo root:
 bun install
 
-# Once, to download Chrome for Testing (skipped automatically if you already
-# have a compatible Chrome, Brave, Playwright, or Puppeteer install):
+# Once, to download Chrome for Testing:
 bin/browser-buddy install
+
+# Linux only, if you need system-level browser dependencies too:
+bin/browser-buddy install --with-deps
 ```
 
 All commands in this skill are invoked through `bin/browser-buddy` rather than a globally-installed binary. The wrapper resolves the vendored `agent-browser` binary by walking up to the nearest `node_modules/.bin/agent-browser`.
@@ -59,7 +61,7 @@ bin/browser-buddy snapshot -i --json | jq '.elements[] | select(.role=="button")
 
 ## What lives where
 
-- `references/commands.md` — the full command surface (navigation, interaction, get, find, wait, network, tabs, frames, dialogs, mouse, settings, eval, state, debug)
+- `references/commands.md` — full command surface (navigation, interaction, get, find, wait, network, tabs, frames, dialogs, mouse, settings, eval, state, debug, record)
 - `references/snapshot-refs.md` — deeper dive on the snapshot/ref model and how to keep refs fresh
 - `references/sessions.md` — sessions, state save/load, persistent profiles, credential handling
 - `references/recording.md` — screenshots, full-page captures, PDF export, video recording

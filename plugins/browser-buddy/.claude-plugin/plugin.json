@@ -1,6 +1,6 @@
 {
   "name": "browser-buddy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser automation via Vercel's agent-browser CLI. Drives real Chrome for navigation, form filling, scraping, screenshotting, video recording, and web app testing. Built around the snapshot-ref interaction pattern for token-efficient agent use.",
   "author": {
     "name": "Mike Riley",
