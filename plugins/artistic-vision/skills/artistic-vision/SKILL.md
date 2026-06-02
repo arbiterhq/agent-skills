@@ -53,6 +53,17 @@ bin/art <subcommand> [args] [options]
 - `--attempts <n>`: generate N times and keep the best (requires `--judge`)
 - `--judge <criteria>`: AI judging criteria for multi-attempt mode
 
+### Transparent Backgrounds: Not Supported Directly
+
+`generate` and `edit` **cannot** produce images with a true transparent (alpha) background. When asked for transparency, the model typically renders a fake checkerboard pattern (the visual placeholder editors like Photoshop use to *represent* transparency), baked in as opaque pixels. The result looks transparent but is not.
+
+To get a real transparent-background asset, use this two-step workflow:
+
+1. Generate the subject on a high-contrast, uniform background that does not appear in the subject itself (neon green or magenta work well): `bin/art generate /tmp/asset.png "a red sneaker, centered, on a solid neon green background"`.
+2. Remove that background to produce true alpha. Prefer `extract`, which is AI-guided and handles complex edges: `bin/art extract /tmp/asset.png /tmp/asset-cut.png --subject "the sneaker"`. For a flat keyable background you can also do a chroma-key style color replacement with the sharp tools.
+
+Pick a key color that does not occur in the subject, and verify the cut with `--inspect` or `bin/art info` (confirm an alpha channel exists).
+
 ### `extract` Options
 
 - `--subject <description>`: what to keep (default: "the main subject")
@@ -158,6 +169,7 @@ bin/art sheet analyze spritesheet.png --frame 32x32 --json
 ## Tips
 
 - Use `--inspect` on `generate`, `edit`, or `extract` to auto-verify results.
+- Need a transparent background? `generate` cannot make one (it fakes a checkerboard). Generate on a neon-green/magenta background, then `extract` to get real alpha. See "Transparent Backgrounds" above.
 - Use `--json` when piping output to other tools.
 - `info` and `palette` are free (no API), so use them liberally.
 - For pixel art, always use `upscale` instead of `resize` (nearest-neighbor by default).
