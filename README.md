@@ -12,10 +12,6 @@ Browser automation wrapping Vercel's [agent-browser](https://github.com/vercel-l
 
 Image generation via [Nano Banana](https://github.com/kingbootoshi/nano-banana-2-skill) (Google Gemini image models) and local image processing via Sharp, ImageMagick, and FFmpeg. Generate from prompts, edit existing images, create transparent assets, resize, convert, and batch process.
 
-### Git Ideas
-
-Opinionated git workflow management. Atomic one-idea-per-commit methodology, worktrees for parallel development, change stacking across dependent branches, GitHub PR workflows, and merge strategies.
-
 ## Installation
 
 ### Claude Code
@@ -29,7 +25,6 @@ Then install individual plugins:
 ```
 /plugin install browser-buddy@arbiterhq
 /plugin install artistic-vision@arbiterhq
-/plugin install git-ideas@arbiterhq
 ```
 
 ### Codex CLI
@@ -84,7 +79,6 @@ agent-skills/
       .claude-plugin/plugin.json    # Claude Code plugin manifest
       skills/browser-buddy/SKILL.md
     artistic-vision/
-    git-ideas/
   skills/                           # Symlinks for Codex and Gemini discovery
   CLAUDE.md                         # Claude Code project context
   AGENTS.md                         # Codex project context

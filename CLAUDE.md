@@ -16,7 +16,6 @@ This repo is a Claude Code plugin marketplace, a Codex skill set, and a Gemini C
 
 - **browser-buddy**: Browser automation via agent-browser CLI
 - **artistic-vision**: Gemini-powered vision, generation, and editing; Sharp-powered local processing
-- **git-ideas**: Git workflows, worktrees, atomic commits, stacking
 
 ## Conventions
 

@@ -14,7 +14,6 @@ This repo distributes agent skills for Claude Code, Codex CLI, and Gemini CLI.
 
 - **browser-buddy**: Browser automation via agent-browser CLI
 - **artistic-vision**: Image generation (Nano Banana) and processing (Sharp/ImageMagick)
-- **git-ideas**: Git workflows, worktrees, atomic commits, stacking
 
 ## Working Agreements
 

@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "agent-skills",
   "version": "1.0.0",
-  "description": "Cross-platform agent skills for browser automation, image generation and manipulation, and intelligent git workflows. By Posthuman Resources LLC.",
+  "description": "Cross-platform agent skills for browser automation and image generation and manipulation. By Posthuman Resources LLC.",
   "owner": {
     "name": "Posthuman Resources LLC",
     "email": "mike@posthuman.help"
@@ -46,19 +46,6 @@
       ]
     },
     {
-      "name": "git-ideas",
-      "description": "Intelligent git workflow management: worktrees for parallel development, atomic commits following a one-idea-per-commit philosophy, GitHub PR workflows, change stacking, and merge strategies. Use when the user wants to commit changes, manage branches, create PRs, work in parallel with worktrees, or organize their git history.",
-      "source": "./plugins/git-ideas",
-      "category": "development",
-      "version": "0.1.0",
-      "author": {
-        "name": "Mike Riley",
-        "email": "mike@posthuman.help"
-      },
-      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/git-ideas",
-      "keywords": ["git", "worktrees", "commits", "github", "stacking", "workflow"]
-    },
-    {
       "name": "onepassword",
       "description": "Reliable secret retrieval from 1Password via the op CLI. Resolves native op or the Windows op.exe under WSL, reveals concealed fields, and strips the carriage returns and wrapping quotes that corrupt SSH keys and tokens. Use when the user wants to read a secret, API key, or SSH key from 1Password, or inject secrets into a command or env file.",
       "source": "./plugins/onepassword",
@@ -83,6 +70,19 @@
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/render",
       "keywords": ["render", "deployment", "render.yaml", "ssh", "hosting", "api"]
+    },
+    {
+      "name": "primer",
+      "description": "Turn a vague product idea into a primer build-brief, decompose it into idempotent dependency-ordered task files, and run the build with a dynamic Workflow (parallel where safe) or the vendored primer-exec runner. Use when the user has a fuzzy concept and wants it turned into a buildable plan, says 'make a primer', 'bootstrap a project from this idea', or 'run the build'.",
+      "source": "./plugins/primer",
+      "category": "development",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Riley",
+        "email": "mike@posthuman.help"
+      },
+      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/primer",
+      "keywords": ["primer", "scaffolding", "workflow", "bootstrap", "claude-code"]
     }
   ]
 }
