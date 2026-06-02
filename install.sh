@@ -18,6 +18,7 @@ REPO_URL="https://github.com/arbiterhq/agent-skills"
 if $CLAUDE_CODE; then
   echo "Installing for Claude Code..." >&2
   echo "Run: /plugin marketplace add arbiterhq/agent-skills" >&2
+  echo "For browser automation, also run: ./setup-browser-buddy.sh" >&2
 fi
 
 if $CODEX; then

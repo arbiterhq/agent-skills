@@ -5,5 +5,15 @@
 
 set -e
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
+# Resolve symlinks so the wrapper works when invoked through a PATH symlink
+# (e.g. ~/.local/bin/browser-buddy). Without this, dirname "$0" points at the
+# symlink's directory and bun can't find scripts/buddy.ts. macOS does not
+# resolve the shebang path for us, so we must do it here.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+HERE="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 exec bun "$HERE/../scripts/buddy.ts" "$@"
