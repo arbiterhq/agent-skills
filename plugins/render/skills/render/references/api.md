@@ -5,6 +5,26 @@ Base URL: `https://api.render.com/v1`. Auth: `Authorization: Bearer $RENDER_API_
 reference: https://api-docs.render.com. Endpoints below are the commonly used
 ones; verify shapes against the live docs since the API evolves.
 
+## Which API key (multi-account)
+
+This is the API-side version of the SSH multi-account trap in
+`ssh-and-hosting.md`. An API key belongs to exactly one owner (a personal
+account or a team). If you operate more than one Render account, you have more
+than one API key, and `RENDER_API_KEY` must be the key for the account that owns
+the resource you are calling. Keep them distinct (for example separate env vars
+or separate secret-manager items) and select the one matching the service's
+account, just as you select the right SSH key.
+
+Symptoms of the wrong key:
+
+- `401 Unauthorized`: the key is missing, revoked, or for a different account.
+- `404 Not Found` on a `srv-...`/`dpg-...` you can see in the dashboard: the
+  resource belongs to an account this key cannot act on.
+
+`render-api GET /owners` lists the owners a key can act on (each `ownerId` is
+`tea-...` for a team or `usr-...` for a personal account); use it to confirm a
+key matches the account that owns the service before chasing other causes.
+
 All examples use the `render-api` helper, which adds auth, the base URL, and
 pretty-prints with `jq`:
 

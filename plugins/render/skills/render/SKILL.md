@@ -110,6 +110,14 @@ Base URL is `https://api.render.com/v1`; the path argument is normalized so
 token. Output is pretty-printed with `jq` when present. Full endpoint and
 pagination notes in `references/api.md`.
 
+**Which API key (same multi-account trap as SSH).** An API key is scoped to one
+owner (account or team). If you have more than one Render account, you have more
+than one API key, and `RENDER_API_KEY` must be the one for the account that owns
+the service you are touching. The symptom of the wrong key is a `401`, or a
+`404` on a service you can plainly see in that account's dashboard. Pick the key
+whose account owns the `srv-...`; `render-api GET /owners` shows which owner a
+key can act on.
+
 ## render.yaml (Blueprints)
 
 `render.yaml` at the repo root declares your services and datastores as code;
