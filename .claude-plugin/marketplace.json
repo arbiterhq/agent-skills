@@ -57,6 +57,32 @@
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/git-ideas",
       "keywords": ["git", "worktrees", "commits", "github", "stacking", "workflow"]
+    },
+    {
+      "name": "onepassword",
+      "description": "Reliable secret retrieval from 1Password via the op CLI. Resolves native op or the Windows op.exe under WSL, reveals concealed fields, and strips the carriage returns and wrapping quotes that corrupt SSH keys and tokens. Use when the user wants to read a secret, API key, or SSH key from 1Password, or inject secrets into a command or env file.",
+      "source": "./plugins/onepassword",
+      "category": "development",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Riley",
+        "email": "mike@posthuman.help"
+      },
+      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/onepassword",
+      "keywords": ["1password", "secrets", "op", "ssh-keys", "credentials"]
+    },
+    {
+      "name": "render",
+      "description": "Work with Render.com: author and manage render.yaml blueprints, SSH into running services with the host-key flags Render requires, understand the hosting model (services, regions, internal networking, on-box paths), and call the REST API. Use when the user wants to deploy or configure a Render service, ssh into a Render host, run a migration, or query the Render API.",
+      "source": "./plugins/render",
+      "category": "development",
+      "version": "0.1.0",
+      "author": {
+        "name": "Mike Riley",
+        "email": "mike@posthuman.help"
+      },
+      "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/render",
+      "keywords": ["render", "deployment", "render.yaml", "ssh", "hosting", "api"]
     }
   ]
 }
