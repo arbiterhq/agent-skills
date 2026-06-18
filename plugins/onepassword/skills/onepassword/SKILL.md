@@ -7,10 +7,28 @@ description: >-
   SSH key from their vault, sign in to op, cache a key to a file, or inject
   secrets into a command or env file. Triggers include "get X from 1password",
   "read a secret", "op cli", "fetch my API key", "pull the SSH key from my
-  vault", "op read", "OP_SERVICE_ACCOUNT_TOKEN".
+  vault", "op read", "OP_SERVICE_ACCOUNT_TOKEN". Works under WSL, where the CLI
+  is op.exe (a bare `command -v op` may be empty); always use the helper rather
+  than hand-rolling op commands.
 ---
 
 # onepassword
+
+## Do this first (read before touching op)
+
+1. **Use `bin/op-secret`. Do not hand-roll `op`/`op.exe` calls.** The helper
+   already resolves the binary, reveals concealed fields, strips `\r` and
+   wrapping quotes, writes mode 600, and caches. Hand-rolling these is how this
+   goes wrong.
+2. **`command -v op` returning nothing does NOT mean 1Password is unavailable.**
+   On WSL the CLI is `op.exe` (the Windows app's binary). The helper finds it.
+   Never conclude "no 1Password" from a missing native `op`.
+3. **"account is not signed in" is not a dead end.** It means the desktop app's
+   CLI integration is off or the app is locked. Ask the user to enable
+   **Settings, Developer, Integrate with 1Password CLI** and unlock the app; the
+   first read then pops a one-time desktop approval they accept. Then retry.
+4. **Read an item by title is fine**, spaces and parens included:
+   `bin/op-secret --item "render api key (claude)" --field notesPlain --out FILE`.
 
 Read secrets from 1Password through its command line tool (`op`) and hand them
 to whatever needs them: an SSH key written to a file, an API token exported into

@@ -23,6 +23,7 @@ interface EditOpts {
   inspect?: string | true;
   attempts?: string;
   judge?: string;
+  ref?: string[];
 }
 
 async function editOnce(
@@ -30,14 +31,19 @@ async function editOnce(
   output: string,
   instruction: string,
   model: string,
+  refs: string[] = [],
 ): Promise<boolean> {
   const ai = getGoogleAI();
-  const { base64, mimeType } = loadImageAsBase64(input);
 
-  const parts: Part[] = [
-    { inlineData: { data: base64, mimeType } },
-    { text: instruction },
-  ];
+  // Primary image first, then any reference images, then the instruction. With
+  // multiple images the instruction should say what each is for (e.g. "recreate
+  // the first image, re-themed to match the colours of the second").
+  const parts: Part[] = [];
+  for (const img of [input, ...refs]) {
+    const { base64, mimeType } = loadImageAsBase64(img);
+    parts.push({ inlineData: { data: base64, mimeType } });
+  }
+  parts.push({ text: instruction });
 
   const response = await ai.models.generateContent({
     model,
@@ -72,6 +78,12 @@ export function registerEdit(program: Command): void {
     .argument("<output>", "Output file path")
     .argument("<instruction...>", "Editing instruction")
     .option("--model <model>", "Gemini model override")
+    .option(
+      "--ref <path>",
+      "Additional reference image, sent alongside the input (repeatable)",
+      (value: string, previous: string[]) => previous.concat(value),
+      [] as string[],
+    )
     .option("--inspect [question]", "Auto-describe the result after editing")
     .option("--attempts <n>", "Edit N times and keep the best")
     .option("--judge <criteria>", "AI judging criteria (requires --attempts)")
@@ -85,8 +97,10 @@ export function registerEdit(program: Command): void {
         const model = opts.model ?? IMAGEN_MODEL;
         const instruction = instructionParts.join(" ");
         const attempts = opts.attempts ? parseInt(opts.attempts, 10) : 1;
+        const refs = opts.ref ?? [];
 
         log.dim(`Using ${model}`);
+        if (refs.length) log.dim(`+${refs.length} reference image(s)`);
         log.info(`Editing: "${instruction}"`);
 
         if (attempts > 1 && opts.judge) {
@@ -99,7 +113,13 @@ export function registerEdit(program: Command): void {
             tempFiles.push(tempPath);
             log.step(i, attempts, `Editing attempt ${i}...`);
 
-            const ok = await editOnce(input, tempPath, instruction, model);
+            const ok = await editOnce(
+              input,
+              tempPath,
+              instruction,
+              model,
+              refs,
+            );
             if (!ok) {
               log.warn(`Attempt ${i} failed to produce an image.`);
               continue;
@@ -129,7 +149,7 @@ export function registerEdit(program: Command): void {
           }
           log.success(`Best score: ${bestScore}/10`);
         } else {
-          const ok = await editOnce(input, output, instruction, model);
+          const ok = await editOnce(input, output, instruction, model, refs);
           if (!ok) {
             log.error("No image in response.");
             process.exit(1);

@@ -17,15 +17,15 @@ metadata:
 
 General-purpose AI image intelligence toolkit.
 
-## Requirements
-
-Set `GOOGLE_API_KEY` in your environment for any Gemini-powered subcommand. Sharp-powered subcommands run locally and need no API key.
-
 ## CLI
 
 ```bash
 bin/art <subcommand> [args] [options]
 ```
+
+`bin/art` lives at the root of this skill directory; call it by that path (or an absolute path to it). Just run the command you need. Do not preflight: the binary checks its own prerequisites and exits with a clear message (e.g. `Missing required environment variable: GOOGLE_API_KEY`) when something is missing. Do not `echo $GOOGLE_API_KEY`, `command -v art`, or `ls bin/` first.
+
+Gemini-powered subcommands need `GOOGLE_API_KEY` in the environment; the binary enforces this itself, only when the call actually needs it. Sharp-powered subcommands run locally and need no API key, so never gate them behind a key check.
 
 ## Gemini-powered Subcommands (API calls)
 
@@ -52,6 +52,25 @@ bin/art <subcommand> [args] [options]
 - `--inspect [question]`: auto-describe the result after generation or editing
 - `--attempts <n>`: generate N times and keep the best (requires `--judge`)
 - `--judge <criteria>`: AI judging criteria for multi-attempt mode
+
+### `edit` Multiple Reference Images (`--ref`)
+
+`edit` takes one **primary** input (the `<input>` argument) plus any number of
+additional **reference** images via a repeatable `--ref <path>`. All images are
+sent to the model in order — primary first, then each `--ref` — followed by the
+instruction. Say what each image is for in the instruction ("the first image is
+the layout, the second is the colour style").
+
+This is the reliable way to do **structure-from-one, style-from-another**: keep an
+asset's exact composition while re-skinning it to match a style reference.
+
+```bash
+# Re-theme a light diagram to dark, matching a dark style primer, keeping layout:
+bin/art edit light/flow.png dark/flow.png \
+  "Recreate the FIRST image exactly (identical layout and linework); re-theme to
+   dark mode matching the colours of the SECOND image." \
+  --ref primers/dark.png
+```
 
 ### Transparent Backgrounds: Not Supported Directly
 
