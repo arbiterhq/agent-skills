@@ -9,18 +9,13 @@ import { GoogleGenAI, type Part } from "@google/genai";
 
 export { type Part };
 
-/** Validate that an env var exists, or exit with an error. */
-function requireEnv(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    console.error(`Missing required environment variable: ${key}`);
+export function getGoogleAI(): GoogleGenAI {
+  // GEMINI_API_KEY is the current name; GOOGLE_API_KEY kept as a fallback.
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    console.error("Missing required environment variable: GEMINI_API_KEY");
     process.exit(1);
   }
-  return value;
-}
-
-export function getGoogleAI(): GoogleGenAI {
-  const apiKey = requireEnv("GOOGLE_API_KEY");
   return new GoogleGenAI({ apiKey });
 }
 

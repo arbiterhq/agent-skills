@@ -23,9 +23,9 @@ General-purpose AI image intelligence toolkit.
 bin/art <subcommand> [args] [options]
 ```
 
-`bin/art` lives at the root of this skill directory; call it by that path (or an absolute path to it). Just run the command you need. Do not preflight: the binary checks its own prerequisites and exits with a clear message (e.g. `Missing required environment variable: GOOGLE_API_KEY`) when something is missing. Do not `echo $GOOGLE_API_KEY`, `command -v art`, or `ls bin/` first.
+`bin/art` lives at the root of this skill directory; call it by that path (or an absolute path to it). Just run the command you need. Do not preflight: the binary checks its own prerequisites and exits with a clear message (e.g. `Missing required environment variable: GEMINI_API_KEY`) when something is missing. Do not `echo $GEMINI_API_KEY`, `command -v art`, or `ls bin/` first.
 
-Gemini-powered subcommands need `GOOGLE_API_KEY` in the environment; the binary enforces this itself, only when the call actually needs it. Sharp-powered subcommands run locally and need no API key, so never gate them behind a key check.
+Gemini-powered subcommands need `GEMINI_API_KEY` in the environment (`GOOGLE_API_KEY` is accepted as a legacy fallback); the binary enforces this itself, only when the call actually needs it. Sharp-powered subcommands run locally and need no API key, so never gate them behind a key check.
 
 ## Gemini-powered Subcommands (API calls)
 
