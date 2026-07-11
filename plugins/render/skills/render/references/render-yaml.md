@@ -35,7 +35,7 @@ services:
     autoDeploy: true # deploy on push to branch (default true)
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    preDeployCommand: npm run migrate # runs after build, before traffic shifts
+    preDeployCommand: npm run migrate # after build, before traffic; NO disk mounted (see below)
     healthCheckPath: /healthz # web only; must return 2xx
     numInstances: 1 # fixed instance count (omit if using scaling)
     maxShutdownDelaySeconds: 30
@@ -81,6 +81,14 @@ disk:
 ```
 
 Only the mounted disk survives a deploy; the rest of the container is ephemeral.
+
+The disk is mounted **only on the running service** — not on the build machine
+and not on the pre-deploy machine. So for a file-backed DB on the disk (e.g.
+SQLite at `/var/data/app.db`), run migrations/seeds in `startCommand`, not in
+`buildCommand`/`preDeployCommand` — the latter write to an ephemeral path that
+is discarded, and the live service then boots against an empty DB. Also open the
+DB connection lazily so `build` never touches the disk. See the "Disks and
+migrations" section in `SKILL.md`.
 
 ### Custom domains
 
