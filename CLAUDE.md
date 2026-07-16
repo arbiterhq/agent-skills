@@ -14,7 +14,7 @@ This repo is a Claude Code plugin marketplace, a Codex skill set, and a Gemini C
 
 ## Skills
 
-- **browser-buddy**: Browser automation via agent-browser CLI
+- **agent-browser** (browser-buddy plugin): how to drive the agent-browser CLI; the plugin also ships the browser-buddy operator agent (haiku)
 - **artistic-vision**: Gemini-powered vision, generation, and editing; Sharp-powered local processing
 
 ## Conventions

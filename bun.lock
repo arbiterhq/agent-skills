@@ -24,10 +24,9 @@
     },
     "plugins/browser-buddy": {
       "name": "browser-buddy",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
-        "agent-browser": "^0.26.0",
-        "sharp": "^0.34.5",
+        "agent-browser": "^0.32.1",
       },
       "devDependencies": {
         "prettier": "^3.8.2",
@@ -138,7 +137,7 @@
 
     "agent-base": ["agent-base@7.1.4", "", {}, "sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ=="],
 
-    "agent-browser": ["agent-browser@0.26.0", "", { "bin": { "agent-browser": "bin/agent-browser.js" } }, "sha512-pdqSfjwbFSp+qnwlb2g23e9wXveIOfMi19xpPA9xZUbzEAUp6W4YBZj6Ybj8z4M7WkcbGDDYc+oDIHDt9R3EDQ=="],
+    "agent-browser": ["agent-browser@0.32.1", "", { "bin": { "agent-browser": "./bin/agent-browser.js" } }, "sha512-LsyhGVUH8C/zaj0nojxY6RPCCJ1YJZwXC5Ht50Ic2LPWvW4S6u1I5F5N368bbLRpQmE6lkCXaL5CTyGA7hc3DQ=="],
 
     "artistic-vision": ["artistic-vision@workspace:plugins/artistic-vision"],
 

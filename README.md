@@ -6,7 +6,7 @@ Cross-platform agent skills for [Claude Code](https://claude.com/claude-code), [
 
 ### Browser Buddy
 
-Browser automation wrapping Vercel's [agent-browser](https://github.com/vercel-labs/agent-browser) CLI. Navigate pages, fill forms, click buttons, take screenshots, scrape structured data, and automate browser workflows.
+Browser automation built on Vercel's [agent-browser](https://github.com/vercel-labs/agent-browser) CLI. Ships an `agent-browser` skill (how to drive the CLI: snapshot refs, sessions, gotchas) and a `browser-buddy` agent, a haiku-powered operator that takes a high-level task like "browse the whole site, use all the forms, report anything broken" and returns a concise findings report.
 
 ### Artistic Vision
 
@@ -77,7 +77,8 @@ agent-skills/
     browser-buddy/
       package.json                  # Workspace member
       .claude-plugin/plugin.json    # Claude Code plugin manifest
-      skills/browser-buddy/SKILL.md
+      skills/agent-browser/SKILL.md
+      agents/browser-buddy.md       # Operator subagent (Claude Code only)
     artistic-vision/
   skills/                           # Symlinks for Codex and Gemini discovery
   CLAUDE.md                         # Claude Code project context
