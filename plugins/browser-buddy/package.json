@@ -1,6 +1,6 @@
 {
   "name": "browser-buddy",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Browser automation plugin: the agent-browser skill plus the browser-buddy operator agent. Vendors Vercel's agent-browser CLI through Bun workspaces.",
   "private": true,
   "author": {

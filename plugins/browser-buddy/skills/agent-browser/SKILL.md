@@ -14,9 +14,11 @@ description: >-
 
 Drives a real Chrome instance via `agent-browser` (Vercel Labs' native Rust CLI, talking to Chrome over the Chrome DevTools Protocol). Instead of CSS selectors, it works from accessibility-tree snapshots whose elements are pre-labeled with refs like `@e3`; you snapshot, pick a ref, act, and re-snapshot.
 
-## Delegate multi-step work to the browser-buddy agent
+## For the launching assistant: delegate multi-step work to the browser-buddy agent
 
-This plugin ships a `browser-buddy` agent (haiku-powered) built for exactly this. Anything beyond one or two commands, navigating a site, filling forms across pages, reading screenshots and logs to judge whether things work, should be handed to it as a high-level brief ("test the whole checkout flow and report anything broken"). It does the browsing internally and returns a concise findings report, so bulky snapshots and screenshots never land in the parent context.
+**If you are the browser-buddy agent, this section is not for you: you are the operator, drive the CLI yourself and never launch another agent.**
+
+Otherwise (you are the main assistant deciding how to do browser work): this plugin ships a `browser-buddy` agent (haiku-powered) built for exactly this. Anything beyond one or two commands, navigating a site, filling forms across pages, reading screenshots and logs to judge whether things work, should be handed to it as a high-level brief ("test the whole checkout flow and report anything broken"). It does the browsing internally and returns a concise findings report, so bulky snapshots and screenshots never land in the parent context.
 
 Drive the browser inline only for a quick one-shot (open a URL, grab one screenshot) or when the user is making the judgment call at each step and the conversation is the loop.
 
