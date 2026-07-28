@@ -1,0 +1,138 @@
+# The project adapter
+
+Everything project-specific lives in one file in the consuming repo: `.claude/night-shift.md`. It is named after the plugin that reads it, so a repo can carry adapters for several plugins without collision and it is obvious from the filename what consumes it.
+
+The file has the same shape as a `SKILL.md`: YAML frontmatter plus a markdown body. The split is not cosmetic.
+
+- **Frontmatter is configuration.** Skills read it as values. A missing or malformed required key is a hard stop at preflight, reported by name.
+- **Body is instruction.** Agents read it as prose and weigh it. It is never parsed.
+
+Keep configuration out of the body and judgment out of the frontmatter. The two halves fail differently: a wrong hook command should stop the run immediately, while a house rule about commit voice should shape a commit message and nothing else.
+
+The test of whether the split is right: all three skills run against a repo that is not the one they were written for, with no edits to the package, only a new adapter file.
+
+## Frontmatter keys
+
+### Required
+
+| Key | Type | Notes |
+| --- | --- | --- |
+| `repo` | string | Tracker identifier, for example `owner/name`. Without it there is no board to triage. |
+| `base_branch` | string | Everything branches from it, everything merges to it. |
+| `hooks.provision` | string | Command that creates a unit's environment. See the hook contract below. |
+| `hooks.teardown` | string | Command that removes it. |
+| `hooks.build` | string | Command that must pass before anything lands. |
+| `hooks.integrate` | string | Command that squash-merges a branch onto the base branch. |
+
+### Optional
+
+| Key | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `push_policy` | `after-each` \| `batched` \| `never` | `never` | Publishing is opt-in. |
+| `concurrency_cap` | integer | `3` | Counts units, not processes. |
+| `priority_order` | list | `[security, bug, feature]` | How the build queue is ordered. |
+| `hooks.preflight` | string | none | Run once before the first dispatch. Non-zero exit stops the run. |
+| `hooks.typecheck` | string | none | Compile hygiene, run inside a worktree. |
+| `hooks.test` | string | none | Run by the verifier when defined. |
+| `hooks.seed` | string | none | Resets a unit's data store to a known state. Must be idempotent. |
+| `hooks.start` | string | none | Starts the dev server. Must honor the assigned port. |
+| `overrides` | map | none | Per-role model and reasoning overrides. See below. |
+| `references` | list of paths | none | Read-only prior art an agent may consult. |
+| `prior_art` | boolean | `true` when `references` is set | Turns the planner's prior art mode on or off. |
+| `design_reference` | path | none | What visual criteria are graded against. |
+| `test_accounts` | list | none | Role plus a reference to credentials, never the credentials. |
+
+### Shape
+
+```yaml
+---
+repo: owner/name
+base_branch: main
+push_policy: never
+concurrency_cap: 3
+priority_order: [security, bug, feature]
+
+hooks:
+  preflight: bash .claude/night-shift/preflight.sh
+  provision: bash .claude/night-shift/wt.sh new
+  teardown: bash .claude/night-shift/wt.sh remove
+  integrate: bash .claude/night-shift/wt.sh integrate
+  typecheck: bun x tsc -b
+  build: bun run build
+  test: bun test
+  seed: bun run seed
+  start: bun run start
+
+overrides:
+  scout: { model: sonnet }
+  verifier: { model: sonnet, effort: medium }
+
+references:
+  - ../reference-app-one
+  - ../reference-app-two
+prior_art: true
+design_reference: docs/09-design-system.md
+
+test_accounts:
+  - role: admin
+    user: admin@example.com
+    password_ref: op://Engineering/night-shift demo/password
+  - role: member
+    user: member@example.com
+    password_ref: op://Engineering/night-shift demo/password
+---
+```
+
+## The hook contract
+
+Skills call hook names. They never contain a literal project command, and an agent that hardcodes one has broken the package.
+
+Every hook runs from the repo root unless noted. Every hook reports failure with a non-zero exit and a one-line reason on stderr.
+
+| Hook | Called with | Must do | Must print |
+| --- | --- | --- | --- |
+| `preflight` | nothing | Check every precondition the run needs: toolchain present, tracker authenticated, data store reachable, tree clean, stray environments swept | one line per problem found |
+| `provision` | a slug | Create the worktree branched from the base branch, install or link dependencies, write the environment file, create and seed an isolated data store, allocate a unique port, start the server | `WORKTREE=<path>`, `PORT=<n>`, and any extra `KEY=VALUE` values agents will need, one per line |
+| `teardown` | a slug | Remove the worktree, drop its data store, free the port | nothing required |
+| `integrate` | a slug and a commit message | Squash-merge the branch onto the base branch as one commit | the new short SHA on success |
+| `typecheck`, `build`, `test`, `seed` | nothing, run inside the worktree | What the name says | whatever the tool prints |
+| `start` | nothing, with the assigned port in the environment | Start the app on that port | whatever the tool prints |
+
+Two conventions the pipeline depends on:
+
+- **`integrate` exit 3 means conflict.** Any other non-zero exit is a real failure. On exit 3 the integrator escalates to a fixer rather than resolving markers itself, so the hook should print the conflicting files and the exact commit message that must be used.
+- **`provision` prints values, and agents receive them as values.** Nothing in the package hardcodes a path, a port, or a data store name.
+
+If your `integrate` hook appends its own closing trailer (deriving the issue number from the branch name, for example), say so in the body. The integrator checks before writing one, and it never amends a commit to fix a trailer it could have passed correctly.
+
+## Overrides
+
+```yaml
+overrides:
+  scout: { model: sonnet }
+  planner: { model: opus }
+```
+
+Both values resolve independently, first match wins:
+
+1. an explicit model or reasoning level passed at dispatch (including flags to `/orchestrate`)
+2. this override map
+3. the agent definition frontmatter
+4. the class default for reasoning level (`fable` and `opus` high, `sonnet` medium; `haiku` has none)
+
+Overriding a model does not carry a reasoning level with it. Every agent in this package that can state an `effort` states one explicitly, so the resolved value is visible in the file rather than inferred.
+
+**Haiku takes no reasoning level.** An `effort` set here for a role running on haiku (`scout`, `integrator` by default) cannot be applied at all. Raise those by overriding the model up to sonnet instead; the run logs them as `effort=n/a`.
+
+**One honest limitation.** `effort` is settable in two places, agent definition frontmatter and slash-command frontmatter, and neither of them is the dispatch. The `Agent` tool accepts `model`, `subagent_type`, `isolation`, and `run_in_background`, and no effort, so a reasoning override in this map cannot be applied at dispatch time. To make one stick, edit the agent definition's `effort` field or change the session effort level. When a run cannot apply a requested level, it logs `effort=<X> REQUESTED, NOT APPLIED` rather than recording a level that never took effect. Model is the lever that works at dispatch; reach for it first.
+
+## The body
+
+Everything an agent reads as instruction rather than configuration:
+
+- house rules for generated content: voice, banned words, commit conventions, formatting
+- what counts as production sensitive in this repo, which routes an issue to `HOLD`
+- escalation policy: what to decide, what to ask about, and who to ask
+- anything about the codebase an agent would otherwise have to infer: architectural contracts, where a new module goes, what "done" usually means here
+
+Write it as prose an agent weighs, not as rules it parses. If something must be enforced exactly, it belongs in frontmatter or in a hook.

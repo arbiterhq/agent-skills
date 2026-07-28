@@ -1,0 +1,14 @@
+{
+  "name": "night-shift",
+  "version": "0.1.0",
+  "description": "Composable agent roster, pipeline skills, and orchestration commands for unattended build runs. Prompt-only, no runtime dependencies.",
+  "private": true,
+  "author": {
+    "name": "Mike Riley",
+    "email": "mike@posthuman.help"
+  },
+  "license": "MIT",
+  "scripts": {
+    "format": "prettier --write ."
+  }
+}

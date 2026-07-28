@@ -14,6 +14,7 @@ This repo distributes agent skills for Claude Code, Codex CLI, and Gemini CLI.
 
 - **agent-browser** (browser-buddy plugin): how to drive the agent-browser CLI; the plugin also ships the browser-buddy operator agent (Claude Code only)
 - **artistic-vision**: Image generation (Nano Banana) and processing (Sharp/ImageMagick)
+- **task-triage, worktree-pipeline, task-tracking** (night-shift plugin): unattended build runs. The agents and commands the plugin also ships are Claude Code only; these three skills run standalone, with the concurrency cap dropped to 1
 
 ## Working Agreements
 

@@ -12,6 +12,10 @@ Browser automation built on Vercel's [agent-browser](https://github.com/vercel-l
 
 Image generation via [Nano Banana](https://github.com/kingbootoshi/nano-banana-2-skill) (Google Gemini image models) and local image processing via Sharp, ImageMagick, and FFmpeg. Generate from prompts, edit existing images, create transparent assets, resize, convert, and batch process.
 
+### Night Shift
+
+Runs a board of work unattended. Ships a roster of small composable agents (orchestrator, delegate, planner, researcher, scout, verifier, fixer, integrator), three skills (`task-triage`, `worktree-pipeline`, `task-tracking`), and the `/orchestrate`, `/drain`, and `/abort` commands. `/orchestrate any open bugs on github` triages the board, builds each unit in its own worktree, grades it against criteria it did not write for itself, and lands it, while you steer from the foreground. Every agent is usable on its own. Nothing in the package names a project: all specifics live in a `.claude/night-shift.md` adapter in the consuming repo.
+
 ## Installation
 
 ### Claude Code
@@ -25,6 +29,7 @@ Then install individual plugins:
 ```
 /plugin install browser-buddy@arbiterhq
 /plugin install artistic-vision@arbiterhq
+/plugin install night-shift@arbiterhq
 ```
 
 ### Codex CLI
@@ -80,6 +85,10 @@ agent-skills/
       skills/agent-browser/SKILL.md
       agents/browser-buddy.md       # Operator subagent (Claude Code only)
     artistic-vision/
+    night-shift/
+      agents/                       # Agent roster (Claude Code only)
+      commands/                     # /orchestrate, /drain, /abort (Claude Code only)
+      skills/                       # task-triage, worktree-pipeline, task-tracking
   skills/                           # Symlinks for Codex and Gemini discovery
   CLAUDE.md                         # Claude Code project context
   AGENTS.md                         # Codex project context
