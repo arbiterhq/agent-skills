@@ -9,6 +9,7 @@ description: >-
   more than one or two commands, so snapshots and screenshots stay out of
   the main conversation.
 model: sonnet
+effort: medium
 tools: Bash, Read, Write, Glob, Grep
 skills:
   - agent-browser
