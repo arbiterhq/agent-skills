@@ -6,7 +6,7 @@ Cross-platform agent skills for [Claude Code](https://claude.com/claude-code), [
 
 ### Browser Buddy
 
-Browser automation built on Vercel's [agent-browser](https://github.com/vercel-labs/agent-browser) CLI. Ships an `agent-browser` skill (how to drive the CLI: snapshot refs, sessions, gotchas) and a `browser-buddy` agent, a haiku-powered operator that takes a high-level task like "browse the whole site, use all the forms, report anything broken" and returns a concise findings report.
+Browser automation built on Vercel's [agent-browser](https://github.com/vercel-labs/agent-browser) CLI. Ships an `agent-browser` skill (how to drive the CLI: snapshot refs, sessions, gotchas) and a `browser-buddy` agent, a sonnet-powered operator that takes a high-level task like "browse the whole site, use all the forms, report anything broken" and returns a concise findings report.
 
 ### Artistic Vision
 

@@ -14,7 +14,7 @@ This repo is a Claude Code plugin marketplace, a Codex skill set, and a Gemini C
 
 ## Skills
 
-- **agent-browser** (browser-buddy plugin): how to drive the agent-browser CLI; the plugin also ships the browser-buddy operator agent (haiku)
+- **agent-browser** (browser-buddy plugin): how to drive the agent-browser CLI; the plugin also ships the browser-buddy operator agent (sonnet)
 - **artistic-vision**: Gemini-powered vision, generation, and editing; Sharp-powered local processing
 - **task-triage, worktree-pipeline, task-tracking** (night-shift plugin): unattended build runs; the plugin also ships an eight-agent roster and the /orchestrate, /drain, and /abort commands. Project specifics live in a `.claude/night-shift.md` adapter in the consuming repo, never in the package
 
