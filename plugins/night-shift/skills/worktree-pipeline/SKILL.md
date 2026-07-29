@@ -29,9 +29,11 @@ Then confirm the queue is actually disjoint. Overlapping units are not a paralle
 
 ### 1. Provision
 
-Create a worktree branched from the base branch, with its own dependencies, environment file, isolated data store, and a unique port, then start the dev server. This is the skill's job, through the adapter's `provision` hook, because the delegate assumes it is already done.
+Create a worktree branched from the base branch, with its own dependencies, environment file, isolated data store, and a unique port. This is the skill's job, through the adapter's `provision` hook, because the delegate assumes it is already done.
 
-Record what provisioning printed: worktree path, port, data store name. Those are values you pass onward, never values an agent hardcodes.
+Starting the dev server is the adapter's call, not a constant. Some `provision` hooks start it; others deliberately leave the port free, because at provision time the worktree is a copy of the base branch with nothing implemented, so a server started then is stale before anyone needs it and whoever builds the change starts it themselves with the `start` hook. Provision says which it did on its `SERVER=` line.
+
+Record what provisioning printed: worktree path, port, data store name, and server state. Those are values you pass onward, never values an agent hardcodes or assumes.
 
 If provisioning fails, the unit never enters a lane. Report it as an environment problem and move to the next unit.
 
@@ -77,7 +79,7 @@ Inject this boilerplate at dispatch, filled in with values. No agent should have
 
 - **Worktree path.** "`cd` there first and confirm. All edits and version control commands stay inside it. Never touch the primary checkout."
 - **Read-only paths** it may consult (reference implementations, docs, an outer planning repo), passed as values.
-- **The assigned port**, and the fact that the server is already running on it.
+- **The assigned port**, and what is on it, taken from provision's `SERVER=` line rather than assumed: either "the server is already running on it" or "the port is yours and unused; build and start it yourself with the `start` hook, and kill it when you are done."
 - **Its data store is its own.** Mutate it freely; reset with the `seed` hook. An unreachable data store is an environment failure to report, not evidence the work is broken.
 - **Toolchain commands by hook name** (`typecheck`, `build`, `test`, `seed`, `start`), never as literal commands.
 - **Browser work goes through `browser-buddy`**, with URL, credentials, and the exact journey. Agents do not drive browsers directly.

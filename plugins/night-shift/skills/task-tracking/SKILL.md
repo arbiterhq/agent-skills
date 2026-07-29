@@ -18,7 +18,7 @@ This skill tracks a run. It does not write to GitHub. That boundary is the point
 
 Either of two ways:
 
-1. **The goals you were given.** `/orchestrate any open bugs on github`, or `#90 then #126`, or a focus area. Take them as stated, including any ordering the user implied.
+1. **The goals you were given**, as the run command received them: `any open bugs on github`, or `#90 then #126`, or a focus area. Take them as stated, including any ordering the user implied.
 2. **Your own reading of task state**, when no goals were named. Work out what should be worked on from the `task-triage` digest, what is already in flight (worktrees, branches, unpushed commits), and what is blocked. Prefer finishing in-flight work over starting new work.
 
 Either way the list is derived at the start of the run and does not carry over to the next one. Neither the run nor the list is durable, and neither needs to be: git, the tracker, and the worktree list are what survive.

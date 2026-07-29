@@ -40,6 +40,8 @@ Neither is required, and both are degraded gracefully with a note in the return:
 
 `/orchestrate` runs in the foreground, so it is a conversation. Interject at any time: add a task, drop one, reprioritize, redirect, or ask what is running.
 
+Those three names are the package defaults. A repo is free to alias them to its own — Adaptig's run command is `/grind` — so when an agent points a user at a command, it names the one installed here rather than the default.
+
 Stopping is two commands, and which one you type is the whole decision:
 
 - `/drain` dispatches nothing further, lets in-flight units finish, integrates what comes back green, then reports and stops.

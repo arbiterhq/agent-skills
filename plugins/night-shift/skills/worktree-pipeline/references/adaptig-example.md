@@ -56,6 +56,11 @@ separate ports), but a pipeline worktree always uses the single-process `start`
 hook on its assigned port: the two-process dev server proxies to a hardcoded
 port and parallel worktrees would collide on it.
 
+`provision` does not start the server and reports `SERVER=not-started`. At
+provision time the worktree is the base branch with nothing implemented, so a
+server started then is stale before anyone needs it. Whoever verifies builds and
+starts it on the assigned port itself, and kills it when done.
+
 ## Data
 
 Postgres. Schema is idempotent SQL applied at boot; the `seed` hook loads demo

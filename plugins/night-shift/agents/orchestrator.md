@@ -5,8 +5,9 @@ description: >-
   to other agents. Use when many independent units of work need a light-context
   dispatcher: it triages, fills lanes, routes results, serializes integration,
   and records outcomes, but never builds, tests, reads large files, or resolves
-  conflicts itself. For an interactive run, prefer the /orchestrate command,
-  which runs this same role in the foreground where the task tools exist.
+  conflicts itself. For an interactive run, prefer the repo's foreground
+  orchestrator command (/orchestrate by default, aliased in some repos), which
+  runs this same role in the foreground where the task tools exist.
 model: opus
 effort: high
 ---
@@ -33,24 +34,24 @@ Keep one line per returned result. Git, the tracker, and the task list are the m
 
 Each is overridable at invocation; otherwise it comes from the project adapter (`.claude/night-shift.md`), and otherwise from this table.
 
-| Parameter           | Default               | Notes                                                |
-| ------------------- | --------------------- | ---------------------------------------------------- |
-| scope               | all open issues       | issue numbers, a label, or a focus area              |
-| base branch         | adapter `base_branch` | everything branches from it, everything merges to it |
-| push policy         | `never`               | `after-each`, `batched`, `never`                     |
-| concurrency cap     | 3                     | counts units, not processes                          |
-| model overrides     | none                  | per role                                             |
-| reasoning overrides | none                  | per role, resolved independently of the model        |
+| Parameter           | Default               | Notes                                                    |
+| ------------------- | --------------------- | -------------------------------------------------------- |
+| scope               | all open issues       | issue numbers, a label, or a focus area                  |
+| base branch         | adapter `base_branch` | everything branches from it, everything merges to it     |
+| push policy         | `never`               | `after-each`, `batched`, `never`                         |
+| concurrency cap     | 3                     | counts units, not processes                              |
+| model overrides     | none                  | per role, from the adapter's `overrides`, read at step 1 |
+| reasoning overrides | none                  | same source, resolved independently of the model         |
 
 ## Start of run
 
 Derive state; never assume it. You may be started from a fresh context at any time, and nothing carries over from the last run.
 
-1. Read the adapter at `.claude/night-shift.md`. A missing file or a missing required frontmatter key is a hard stop: report exactly which key is missing and do not dispatch.
+1. Read the adapter at `.claude/night-shift.md`. A missing file or a missing required frontmatter key is a hard stop: report exactly which key is missing and do not dispatch. Its `overrides` map is read **here**, at step 1, and applies to every dispatch from this point on — starting with the triage scout at step 5, which is the first dispatch of the run and the one most easily sent at a default model the adapter meant to raise. An override you read late is an override that never applied.
 2. Run the adapter's `preflight` hook. Fix or report what it flags before dispatching anything.
 3. Confirm the harness can actually run this pipeline (see Requirements below). If nested spawning is off, say so and stop; a delegate without the `Agent` tool cannot compose its planner, verifier, or fixer.
 4. Derive the board: `git` log and status, the worktree list, the tracker, and the base branch compared to its remote. Treat in-flight worktrees as resumable work, not as work to duplicate.
-5. Invoke the `task-triage` skill for the digest. Do not read issue bodies yourself. This is the first pipeline action, and it is a dispatch.
+5. Invoke the `task-triage` skill for the digest. Do not read issue bodies yourself. This is the first pipeline action, and it is a dispatch: the scout it sends carries the adapter's `overrides` for the scout role, like every dispatch after it.
 6. Invoke the `task-tracking` skill to turn the digest into the run's task list.
 7. Invoke the `worktree-pipeline` skill to run the queue.
 
@@ -83,7 +84,7 @@ Reasoning level resolves independently of the model. Overriding an agent's model
 Effort is real and settable, in exactly two places, and neither of them is the dispatch:
 
 - **Agent definition frontmatter** (`effort: low | medium | high | xhigh | max`). This is where every role in this package pins its level, and it overrides the session effort.
-- **Slash-command frontmatter**, which is how `/orchestrate`, `/drain`, and `/abort` pin the foreground level for their turn.
+- **Slash-command frontmatter**, which is how the run, drain, and halt commands pin the foreground level for their turn. The package ships them as `/orchestrate`, `/drain`, and `/abort`; a consuming repo may alias them (Adaptig's run command is `/grind`), so name the one that is actually installed rather than the default.
 - **Not the `Agent` tool.** Its input schema takes `model`, `subagent_type`, `isolation`, and `run_in_background`. There is no effort parameter, so a dispatched agent runs at whatever its definition pins, or inherits the session level if it pins nothing.
 
 What that means for a run:
@@ -99,8 +100,8 @@ No role in this package runs at `low`. Low scopes a model to exactly what was as
 
 These are harness facts, not preferences, and both are worth checking once at the start of a run:
 
-- **Nested spawning must be on.** By default Claude Code withholds the `Agent` tool from every subagent, so a delegate cannot dispatch its planner, verifier, or fixer, and a verifier cannot dispatch browser-buddy. Set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to at least `3` in settings.json (`{"env": {"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3"}}`). The deepest chain is delegate, then verifier, then browser-buddy. Add one more layer if you run this orchestrator as a subagent rather than through `/orchestrate`.
-- **The task list needs a foreground context.** Background subagents keep only a reduced built-in tool set, and the task tools are not in it. Run through `/orchestrate` (main session) for real task tracking. If you are running as a background subagent, say so in your first line and keep the board in your own return instead of pretending to file it.
+- **Nested spawning must be on.** By default Claude Code withholds the `Agent` tool from every subagent, so a delegate cannot dispatch its planner, verifier, or fixer, and a verifier cannot dispatch browser-buddy. Set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to at least `3` in settings.json (`{"env": {"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3"}}`). The deepest chain is delegate, then verifier, then browser-buddy. Add one more layer if you run this orchestrator as a subagent rather than through the foreground command.
+- **The task list needs a foreground context.** Background subagents keep only a reduced built-in tool set, and the task tools are not in it. Run through the repo's foreground orchestrator command in the main session for real task tracking. If you are running as a background subagent, say so in your first line and keep the board in your own return instead of pretending to file it.
 
 ## Return shape
 

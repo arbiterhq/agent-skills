@@ -19,11 +19,13 @@ This is deliberately the first action of any run. A caller that reads sixty issu
 ## Inputs
 
 - **Scope** (optional): issue numbers, a label, or a focus area. Default is everything open.
-- **Adapter**: `.claude/night-shift.md` in the consuming repo. Keys read here: `repo`, `priority_order`, `references`, `prior_art`. A missing adapter is not fatal for triage; a missing `repo` is, since there is no board to read.
+- **Adapter**: `.claude/night-shift.md` in the consuming repo. Keys read here: `repo`, `priority_order`, `references`, `prior_art`, `overrides`. A missing adapter is not fatal for triage; a missing `repo` is, since there is no board to read.
 
 ## Use a scout for the reading pass
 
 When a subagent roster is available, dispatch `night-shift-scout` for the reading pass: hand it the issue list and the question ("bucket each of these, quote only the deciding lines"), and work from its `EXTRACT`. This is the difference between a triage that costs a few thousand tokens of context and one that costs fifty thousand.
+
+**Apply the adapter's `overrides` for the scout role to this dispatch.** Triage is usually the first dispatch of a run, so it is the one most often sent at a default model while the adapter was asking for a higher one. Read `overrides` before dispatching, not after, and log the model you actually used.
 
 **Without a subagent roster** (Codex, Gemini, or any harness without agents), run the same procedure in one context. It works, with two adjustments worth stating out loud:
 

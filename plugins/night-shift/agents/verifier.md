@@ -21,7 +21,7 @@ You have no edit or write tool, which makes that structural rather than a promis
 
 An environment fault is not a failed change, and reporting one as a failure sends a fixer to repair working code.
 
-Before returning any `FAIL`, confirm: the data store is reachable, the `seed` hook has run, and the server is up on the assigned port. If any of those is wrong, return `ENVIRONMENT` with what is broken instead of `FAIL`.
+Before returning any `FAIL`, confirm: the data store is reachable, the `seed` hook has run, and the app is up on the assigned port — either because provision started it or because you started it with the `start` hook. If any of those is wrong, return `ENVIRONMENT` with what is broken instead of `FAIL`. A port that was handed to you unused is not an environment fault; it is yours to start.
 
 ## Code level
 
@@ -31,7 +31,7 @@ Before returning any `FAIL`, confirm: the data store is reachable, the `seed` ho
 
 ## Behavior level
 
-Exercise the running app, at the assigned port, as the account each criterion calls for.
+Exercise the running app, at the assigned port, as the account each criterion calls for. If you were told the port is yours and unused, start the app yourself with the `start` hook and stop it when you are done. If the caller told you to grade at the code level only, do that and return `LEVELS: code-only` with the reason, so nobody mistakes it for a behavioral pass.
 
 - Dispatch the `browser-buddy` agent with the URL, the credentials, and the exact journey the criterion describes. Do not drive a browser yourself. If browser-buddy is not installed, use the `agent-browser` skill directly and note that in your return.
 - Walk the journey the criterion actually describes, not a convenient neighbor of it. A criterion that says "as the org admin" is not satisfied by checking it as staff.
@@ -53,6 +53,7 @@ Your final message is the return value. Named fields, no narration:
 - `CRITERIA`: one line each, `<n> PASS|FAIL|UNVERIFIED <one-line reason>`
 - `EVIDENCE`: per failed or unverified criterion, the screenshot path, URL, and error excerpt
 - `CODE_CHECKS`: typecheck, build, test, footprint, and forbidden-pattern results
+- `LEVELS`: `code+behavior`, or `code-only` with the reason the behavior level was not run. A `code-only` `PASS` asserts compile hygiene, footprint, and forbidden patterns, and nothing about the feature working; it is never reported as a behavioral pass, and the caller learns which it is from this field rather than from `COVERED`.
 - `COVERED`: what you actually exercised, so a `PASS` says what it covers
 - `NOTES`: anything worth a follow-up that is not a criterion failure
 

@@ -40,7 +40,9 @@ The test of whether the split is right: all three skills run against a repo that
 | `references` | list of paths | none | Read-only prior art an agent may consult. |
 | `prior_art` | boolean | `true` when `references` is set | Turns the planner's prior art mode on or off. |
 | `design_reference` | path | none | What visual criteria are graded against. |
-| `test_accounts` | list | none | Role plus a reference to credentials, never the credentials. |
+| `test_accounts` | list | none | Role plus how the credential is reached. See the line below. |
+
+**Where the line on credentials falls.** Seed fixtures for a data store that is created and dropped per unit may be inline, password and all: they are fixtures for a throwaway database, usually already published in the project's own README, and a `password_ref` for them buys nothing but a secret-manager round trip in every worktree. Anything that authenticates against a shared or real system — staging, a tenant's data, a third-party API, anything that outlives the run — is a reference and never a value, no matter how convenient inlining it would be. If you cannot say which of the two an account is, it is the second one.
 
 ### Shape
 
@@ -92,7 +94,7 @@ Every hook runs from the repo root unless noted. Every hook reports failure with
 | Hook | Called with | Must do | Must print |
 | --- | --- | --- | --- |
 | `preflight` | nothing | Check every precondition the run needs: toolchain present, tracker authenticated, data store reachable, tree clean, stray environments swept | one line per problem found |
-| `provision` | a slug | Create the worktree branched from the base branch, install or link dependencies, write the environment file, create and seed an isolated data store, allocate a unique port, start the server | `WORKTREE=<path>`, `PORT=<n>`, and any extra `KEY=VALUE` values agents will need, one per line |
+| `provision` | a slug | Create the worktree branched from the base branch, install or link dependencies, write the environment file, create and seed an isolated data store, allocate a unique port, and optionally start the server | `WORKTREE=<path>`, `PORT=<n>`, `SERVER=running\|not-started`, and any extra `KEY=VALUE` values agents will need, one per line |
 | `teardown` | a slug | Remove the worktree, drop its data store, free the port | nothing required |
 | `integrate` | a slug and a commit message | Squash-merge the branch onto the base branch as one commit | the new short SHA on success |
 | `typecheck`, `build`, `test`, `seed` | nothing, run inside the worktree | What the name says | whatever the tool prints |
@@ -102,6 +104,7 @@ Two conventions the pipeline depends on:
 
 - **`integrate` exit 3 means conflict.** Any other non-zero exit is a real failure. On exit 3 the integrator escalates to a fixer rather than resolving markers itself, so the hook should print the conflicting files and the exact commit message that must be used.
 - **`provision` prints values, and agents receive them as values.** Nothing in the package hardcodes a path, a port, or a data store name.
+- **Starting the server is optional, and `SERVER=` says what happened.** Start it if a running app at provision time is useful; leave it unstarted if the worktree is a copy of the base branch with nothing implemented yet, in which case the agent that builds the change starts it with the `start` hook on the assigned port and kills it when done. Either way, print the line: the pipeline passes it through to every dispatched agent, and an agent that is told the wrong thing wastes a round finding out.
 
 If your `integrate` hook appends its own closing trailer (deriving the issue number from the branch name, for example), say so in the body. The integrator checks before writing one, and it never amends a commit to fix a trailer it could have passed correctly.
 
@@ -113,9 +116,11 @@ overrides:
   planner: { model: opus }
 ```
 
+This map is read when the adapter is read, at the top of the run, and applies to every dispatch from then on — including the triage scout, which fires before this skill is ever loaded.
+
 Both values resolve independently, first match wins:
 
-1. an explicit model or reasoning level passed at dispatch (including flags to `/orchestrate`)
+1. an explicit model or reasoning level passed at dispatch (including flags to the foreground orchestrator command, `/orchestrate` by default and aliased in some repos)
 2. this override map
 3. the agent definition frontmatter
 4. the class default for reasoning level (`fable` and `opus` high, `sonnet` medium; `haiku` has none)
