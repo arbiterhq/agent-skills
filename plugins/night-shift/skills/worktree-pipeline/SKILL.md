@@ -80,6 +80,7 @@ Inject this boilerplate at dispatch, filled in with values. No agent should have
 - **Worktree path.** "`cd` there first and confirm. All edits and version control commands stay inside it. Never touch the primary checkout."
 - **Read-only paths** it may consult (reference implementations, docs, an outer planning repo), passed as values.
 - **The assigned port**, and what is on it, taken from provision's `SERVER=` line rather than assumed: either "the server is already running on it" or "the port is yours and unused; build and start it yourself with the `start` hook, and kill it when you are done."
+- **Stop only the process it started, by its PID.** Never by name. `pkill -f "<start command>"` matches every lane's server, not just this one, so one unit's cleanup kills the app another unit is mid-verification against — which surfaces as an unreachable server and a `FAIL` written against working code. The port belongs to the unit; the process table is shared.
 - **Its data store is its own.** Mutate it freely; reset with the `seed` hook. An unreachable data store is an environment failure to report, not evidence the work is broken.
 - **Toolchain commands by hook name** (`typecheck`, `build`, `test`, `seed`, `start`), never as literal commands.
 - **Browser work goes through `browser-buddy`**, with URL, credentials, and the exact journey. Agents do not drive browsers directly.
