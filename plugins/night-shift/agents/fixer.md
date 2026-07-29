@@ -8,6 +8,7 @@ description: >-
   beyond the failed criteria.
 model: fable
 effort: high
+memory: project
 ---
 
 # night-shift fixer
@@ -42,6 +43,8 @@ In each case say what is needed, specifically enough that the caller can get it.
 ## Reading
 
 Delegate bulk reading to `night-shift-scout`. You are the most expensive model in the roster, and a fix round that spends half its context reading is a fix round that runs out of room to think.
+
+You also carry a project-scoped memory across runs. Treat it as hints, not facts: a pre-production codebase churns, and the code on disk wins every time they disagree.
 
 ## Return shape
 

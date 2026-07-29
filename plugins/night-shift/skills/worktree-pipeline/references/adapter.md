@@ -1,6 +1,6 @@
 # The project adapter
 
-Everything project-specific lives in one file in the consuming repo: `.claude/night-shift.md`. It is named after the plugin that reads it, so a repo can carry adapters for several plugins without collision and it is obvious from the filename what consumes it.
+Everything project-specific lives in one file: `.claude/night-shift.md` in the repo the pipeline is driven from, meaning the one where the orchestrator command runs. That is usually the repo being built, but not always: a planning repo that wraps the built repo as a submodule drives the pipeline from outside it, and the adapter lives in the planning repo (Adaptig works this way; see `adaptig-example.md`). The file is named after the plugin that reads it, so a repo can carry adapters for several plugins without collision and it is obvious from the filename what consumes it.
 
 The file has the same shape as a `SKILL.md`: YAML frontmatter plus a markdown body. The split is not cosmetic.
 
@@ -42,7 +42,7 @@ The test of whether the split is right: all three skills run against a repo that
 | `design_reference` | path | none | What visual criteria are graded against. |
 | `test_accounts` | list | none | Role plus how the credential is reached. See the line below. |
 
-**Where the line on credentials falls.** Seed fixtures for a data store that is created and dropped per unit may be inline, password and all: they are fixtures for a throwaway database, usually already published in the project's own README, and a `password_ref` for them buys nothing but a secret-manager round trip in every worktree. Anything that authenticates against a shared or real system — staging, a tenant's data, a third-party API, anything that outlives the run — is a reference and never a value, no matter how convenient inlining it would be. If you cannot say which of the two an account is, it is the second one.
+**Where the line on credentials falls.** Seed fixtures for a data store that is created and dropped per unit may be inline, password and all: they are fixtures for a throwaway database, usually already published in the project's own README, and a `password_ref` for them buys nothing but a secret-manager round trip in every worktree. Anything that authenticates against a shared or real system (staging, a tenant's data, a third-party API, anything that outlives the run) is a reference and never a value, no matter how convenient inlining it would be. If you cannot say which of the two an account is, it is the second one.
 
 ### Shape
 
@@ -116,20 +116,16 @@ overrides:
   planner: { model: opus }
 ```
 
-This map is read when the adapter is read, at the top of the run, and applies to every dispatch from then on — including the triage scout, which fires before this skill is ever loaded.
+This map is read when the adapter is read, at the top of the run, and applies to every dispatch from then on, including the triage reading pass, which fires before this skill is ever loaded.
 
 Both values resolve independently, first match wins:
 
-1. an explicit model or reasoning level passed at dispatch (including flags to the foreground orchestrator command, `/orchestrate` by default and aliased in some repos)
+1. an explicit model passed at dispatch (including flags to the foreground orchestrator command, `/orchestrate` by default and aliased in some repos)
 2. this override map
 3. the agent definition frontmatter
 4. the class default for reasoning level (`fable` and `opus` high, `sonnet` medium; `haiku` has none)
 
-Overriding a model does not carry a reasoning level with it. Every agent in this package that can state an `effort` states one explicitly, so the resolved value is visible in the file rather than inferred.
-
-**Haiku takes no reasoning level.** An `effort` set here for a role running on haiku (`scout`, `integrator` by default) cannot be applied at all. Raise those by overriding the model up to sonnet instead; the run logs them as `effort=n/a`.
-
-**One honest limitation.** `effort` is settable in two places, agent definition frontmatter and slash-command frontmatter, and neither of them is the dispatch. The `Agent` tool accepts `model`, `subagent_type`, `isolation`, and `run_in_background`, and no effort, so a reasoning override in this map cannot be applied at dispatch time. To make one stick, edit the agent definition's `effort` field or change the session effort level. When a run cannot apply a requested level, it logs `effort=<X> REQUESTED, NOT APPLIED` rather than recording a level that never took effect. Model is the lever that works at dispatch; reach for it first.
+One caveat worth knowing when writing this map: a model override applies at dispatch, but a reasoning override cannot (there is no dispatch-time effort parameter, and haiku takes no effort at all), so an `effort` set here only documents intent until it is edited into the agent definition or the session level. The full rules are in `models-and-effort.md` next to this file.
 
 ## The body
 

@@ -40,7 +40,7 @@ Neither is required, and both are degraded gracefully with a note in the return:
 
 `/orchestrate` runs in the foreground, so it is a conversation. Interject at any time: add a task, drop one, reprioritize, redirect, or ask what is running.
 
-Those three names are the package defaults. A repo is free to alias them to its own — Adaptig's run command is `/grind` — so when an agent points a user at a command, it names the one installed here rather than the default.
+Those three names are the package defaults. A repo is free to alias them to its own (Adaptig's run command is `/grind`), so when an agent points a user at a command, it names the one installed here rather than the default.
 
 Stopping is two commands, and which one you type is the whole decision:
 
@@ -66,6 +66,8 @@ Every agent is usable on its own. Ask the researcher a question, hand the planne
 
 Three rules are in every definition: the final message is the return value (named fields, not prose); state what was actually done, including skipped steps and failures; never widen your own scope.
 
+The delegate and the fixer carry a project-scoped persistent `memory`. Their definitions treat it as hints, not facts: the code on disk wins whenever they disagree, since a pre-production codebase churns.
+
 Names are prefixed because the pipeline dispatches by name and `planner` or `scout` would collide with whatever else a user has installed.
 
 ## The skills
@@ -78,47 +80,19 @@ Skills work in Codex and Gemini too. Agents and commands are Claude Code only, s
 
 ## Model classes and reasoning levels
 
-Four classes, in order of capability: `fable`, `opus`, `sonnet`, `haiku`. Every agent that can declare a reasoning level declares one explicitly, so the resolved value is visible in the file rather than inferred.
+Four classes, in order of capability: `fable`, `opus`, `sonnet`, `haiku`. Fable and opus at high do judgment that is expensive to get wrong: planning, fixing, owning a unit. The token-heavy jobs sit lower: grading on sonnet at medium, reading and integrating on haiku, where the lever is a reading or return cap rather than a reasoning level. Any agent about to read a large corpus delegates that read to the scout, so expensive models spend context on judgment rather than on files.
 
-Class defaults for reasoning level, applied when a definition says nothing: fable and opus high, sonnet medium. Haiku has no default because it takes no `effort` at all (see below).
-
-Both values resolve independently, first match wins: dispatch-time value, then the adapter's override map, then the agent frontmatter, then the class default. Overriding a model does not carry a reasoning level with it, and dropping an agent to haiku does not lower its level so much as remove the control.
+Model and reasoning level resolve independently, first match wins: dispatch-time model, then the adapter's override map, then the agent frontmatter, then the class default. `effort` is settable only in agent or command frontmatter, never at dispatch, and haiku takes no effort at all. The full rules, the dispatch-record convention, and the cost basis live in `skills/worktree-pipeline/references/models-and-effort.md`.
 
 **No agent runs at `low`.** Medium is the floor. Low scopes a model to exactly what was asked and makes it stop to ask rather than push through multi-step work, which is the opposite of what an unattended run needs. If a job feels cheap enough to want low, use a cheaper model at medium.
-
-### Where a reasoning level can be set
-
-`effort` accepts `low`, `medium`, `high`, `xhigh`, or `max`, in two places:
-
-- **Agent definition frontmatter**, which is where this roster pins its levels. It overrides the session effort.
-- **Slash-command frontmatter**, which is how `/orchestrate`, `/drain`, and `/abort` pin the foreground level. All three sit at `high`, matching the orchestrator definition they adopt.
-
-It is **not** a dispatch-time parameter. The `Agent` tool takes `model`, `subagent_type`, `isolation`, and `run_in_background`, and no effort. So a reasoning override has to be edited into the definition before the run, or set as the session level; when a run cannot apply a requested level it logs `effort=<X> REQUESTED, NOT APPLIED` rather than recording one that never took effect. Model is the lever that works at dispatch. (Workflow scripts are the one exception: `agent(prompt, {effort})` is a real per-call option there, but that is the workflow runner, not the `Agent` tool.)
-
-**Haiku takes no reasoning level.** `night-shift-scout` and `night-shift-integrator` therefore carry no `effort` field, and their dispatch records log `effort=n/a`. A request to make either think harder is answered by overriding the model up to sonnet, which does take a level. This is from the documented model capability tables rather than a live capability query, so treat it as the reason the field is absent rather than as a tested assertion; if it turns out Claude Code simply drops the field on haiku, omitting it is still correct, just less load-bearing.
-
-### Cost basis
-
-List prices, checked 2026-07-25. Verify before quoting.
-
-| Model     | Input / output per Mtok                    | Output cost vs haiku |
-| --------- | ------------------------------------------ | -------------------- |
-| Fable 5   | $10 / $50                                  | 10x                  |
-| Opus 5    | $5 / $25                                   | 5x                   |
-| Sonnet 5  | $2 / $10 through 2026-08-31, then $3 / $15 | 2x, then 3x          |
-| Haiku 4.5 | $1 / $5                                    | 1x                   |
-
-Two levers, and they multiply: model class sets the per-token rate, a 10x spread across the roster, and reasoning level sets how many output tokens get spent on the same task (thinking tokens bill as output, so high can cost several times medium on identical work).
-
-The roster is built around that. Fable and opus at high do judgment that is expensive to get wrong: planning, fixing, owning a unit. The token-heavy jobs sit lower: grading on sonnet at medium, and reading and integrating on haiku, where the lever is the return cap rather than a reasoning level. Any agent about to read a large corpus delegates that read to the scout, so expensive models spend context on judgment rather than on files.
-
-Two dated facts to revisit rather than bake in: Sonnet 5 introductory pricing ends 2026-08-31 and rises 50%, which raises the cost of the verifier, the only sonnet role in the roster; and prompt caching (cache reads cost about a tenth of input, against a 1.25x write premium on the 5-minute TTL) plus the batch API (50% off) are the two discounts that fit this workload, so an adapter should not make caching hard.
 
 ## Harness notes
 
 - **Task tools need a foreground context.** Background subagents keep a reduced built-in tool set, and `TaskCreate` and friends are not in it. That is why `/orchestrate` is the entry point: run as a background subagent, the orchestrator cannot file entries and has to keep the board in its return instead.
 - **Scout has no `Agent` tool** by frontmatter, so it structurally cannot recurse. Planner, researcher, verifier, and integrator have no `Edit` or `Write`, so read-only and grade-only roles are enforced rather than promised.
 - **Skills are not preloaded into agents.** Agents invoke them through the `Skill` tool by name. Preloading a skill whose body says "dispatch a delegate" into an agent that is itself a delegate is how recursion starts.
+- **`task-triage` runs forked.** Its `context: fork` frontmatter puts the whole reading pass in its own context on Claude Code; only the digest returns. Other harnesses ignore the field and run it inline, which the skill body accounts for.
+- **Commands stay in `commands/` for now.** Claude Code treats `.claude/commands/` as a legacy format in favor of skill-format commands, but `commands/` is still the plugin command surface for marketplace installs. Migration is deferred until plugin skill-commands are settled; a consuming repo aliasing the run command is free to use the skill format (Adaptig's `/grind` does).
 
 ## Where it came from
 

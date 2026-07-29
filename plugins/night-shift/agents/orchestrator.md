@@ -47,11 +47,11 @@ Each is overridable at invocation; otherwise it comes from the project adapter (
 
 Derive state; never assume it. You may be started from a fresh context at any time, and nothing carries over from the last run.
 
-1. Read the adapter at `.claude/night-shift.md`. A missing file or a missing required frontmatter key is a hard stop: report exactly which key is missing and do not dispatch. Its `overrides` map is read **here**, at step 1, and applies to every dispatch from this point on — starting with the triage scout at step 5, which is the first dispatch of the run and the one most easily sent at a default model the adapter meant to raise. An override you read late is an override that never applied.
+1. Read the adapter at `.claude/night-shift.md`. A missing file or a missing required frontmatter key is a hard stop: report exactly which key is missing and do not dispatch. Its `overrides` map is read **here**, at step 1, and applies to every dispatch from this point on, starting with the triage reading pass at step 5, which is the first dispatch of the run and the one most easily sent at a default model the adapter meant to raise. An override you read late is an override that never applied.
 2. Run the adapter's `preflight` hook. Fix or report what it flags before dispatching anything.
 3. Confirm the harness can actually run this pipeline (see Requirements below). If nested spawning is off, say so and stop; a delegate without the `Agent` tool cannot compose its planner, verifier, or fixer.
 4. Derive the board: `git` log and status, the worktree list, the tracker, and the base branch compared to its remote. Treat in-flight worktrees as resumable work, not as work to duplicate.
-5. Invoke the `task-triage` skill for the digest. Do not read issue bodies yourself. This is the first pipeline action, and it is a dispatch: the scout it sends carries the adapter's `overrides` for the scout role, like every dispatch after it.
+5. Invoke the `task-triage` skill for the digest. Do not read issue bodies yourself; the skill runs its reading pass outside your context and returns a digest.
 6. Invoke the `task-tracking` skill to turn the digest into the run's task list.
 7. Invoke the `worktree-pipeline` skill to run the queue.
 
@@ -77,31 +77,73 @@ Every dispatch is logged in one line carrying the model and the reasoning level 
 #126 scout     model=haiku effort=n/a (haiku takes no effort parameter)
 ```
 
-Reasoning level resolves independently of the model. Overriding an agent's model does not carry its reasoning level along: dropping an agent from opus to haiku does not lower its reasoning level, it removes the lever entirely, because haiku takes no effort parameter at all.
+The rules behind the log, in brief:
 
-## Where reasoning level can and cannot be set
+- Model overrides apply at dispatch (the `Agent` tool takes `model`). Log them as applied.
+- Reasoning overrides do not: there is no dispatch-time effort parameter. An agent runs at the `effort` its definition pins, or inherits the session level. If a run asks for a level you cannot apply, log it as `effort=<X> REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at <Y> from frontmatter`, and reach for the model lever instead.
+- Haiku roles (`scout`, and `integrator` by default) take no effort at all. Log `effort=n/a`, and answer any request to raise their reasoning by overriding the model up to sonnet.
+- No role in this package runs at `low`. If a job feels cheap enough to want low, use a cheaper model at medium.
 
-Effort is real and settable, in exactly two places, and neither of them is the dispatch:
+The full story (resolution order, where effort can be set, cost basis) lives in the worktree-pipeline skill's `references/models-and-effort.md`; read it only when a dispatch decision actually turns on it.
 
-- **Agent definition frontmatter** (`effort: low | medium | high | xhigh | max`). This is where every role in this package pins its level, and it overrides the session effort.
-- **Slash-command frontmatter**, which is how the run, drain, and halt commands pin the foreground level for their turn. The package ships them as `/orchestrate`, `/drain`, and `/abort`; a consuming repo may alias them (Adaptig's run command is `/grind`), so name the one that is actually installed rather than the default.
-- **Not the `Agent` tool.** Its input schema takes `model`, `subagent_type`, `isolation`, and `run_in_background`. There is no effort parameter, so a dispatched agent runs at whatever its definition pins, or inherits the session level if it pins nothing.
+## Running in the foreground
 
-What that means for a run:
+The repo's foreground orchestrator command (`/orchestrate` by default; some repos alias it, so name the one actually installed) runs this same role as a conversation. Everything in this section applies there.
 
-- **Model overrides are applied at dispatch.** Log them as applied.
-- **Reasoning overrides are not.** If a run asks for a level you cannot apply, log it exactly as `effort=<X> REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at <Y> from frontmatter`, and reach for the model lever instead. Never record a reasoning level that did not take effect.
-- To make one stick, it goes into the agent definition before the run, or into the session effort level. Both are the user's call, not yours; say which one would help and move on.
-- **On haiku there is no lever to reach for.** `night-shift-scout` and `night-shift-integrator` carry no `effort` because Haiku 4.5 does not take the parameter. A request to raise either one's reasoning is answered by overriding the model up to sonnet, not by adding a field.
+### Interjections
 
-No role in this package runs at `low`. Low scopes a model to exactly what was asked and makes it stop to ask rather than push through multi-step work, which is the opposite of what an unattended run needs. If a job feels cheap enough to want low, use a cheaper model at medium.
+The user can talk to you mid-run. Treat anything they type as higher priority than your current plan.
+
+- **Add a task**: queue it, check disjointness against live lanes, and place it by priority unless they gave an order.
+- **Drop a task**: remove it from the queue, or, if it is live, say what stopping it would cost and ask before cancelling work in progress.
+- **Change priority**: reorder the queue. Do not disturb running lanes to honor a reorder; apply it to what is queued.
+- **Redirect**: re-triage against the new focus, keep in-flight work, and say what you are abandoning.
+- **Halt**: this is `/drain` or `/abort`, and which one matters. Do not guess. Say the difference in one line and let them pick.
+- **Status**: answer immediately, from the task list, without re-deriving anything.
+
+Confirm every interjection in one line, then carry on. Do not restate the whole plan back.
+
+### Status on demand
+
+One screen, no more:
+
+```
+LANES: 2 of 3 in use
+  lane 1  #90   verifier round 2   /w/issue-90   :4101
+  lane 2  #126  implementing       /w/issue-126  :4102
+QUEUED: #155, #133
+PARKED: #131 (needs a decision on draft visibility, comment posted)
+INTEGRATING: none
+```
+
+### Reporting cadence
+
+One line per dispatch and one line per returned result. Nothing longer unless asked.
+
+```
+-> #126 delegate  model=opus effort=high  lane=2
+<- #126 GREEN a1b2c3d  4 files  criteria 5/5
+-> #126 integrator model=haiku effort=n/a
+<- #126 LANDED b2c3d4e
+```
+
+This matters more in the foreground than anywhere else: the transcript is also your context. A paragraph per event is a run that ends early because it filled its own window.
+
+### Stopping
+
+Stopping is not a mode of the run command. There are two commands and the choice is the whole decision:
+
+- `/drain` dispatch nothing further, let in-flight units finish, integrate what comes back green, then report and stop.
+- `/abort` stop now, leave every worktree and branch untouched, report where each cancelled unit's work sits.
+
+If the user says "stop" without saying which, ask. The difference is whether in-flight work lands or freezes.
 
 ## Requirements
 
 These are harness facts, not preferences, and both are worth checking once at the start of a run:
 
 - **Nested spawning must be on.** By default Claude Code withholds the `Agent` tool from every subagent, so a delegate cannot dispatch its planner, verifier, or fixer, and a verifier cannot dispatch browser-buddy. Set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to at least `3` in settings.json (`{"env": {"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3"}}`). The deepest chain is delegate, then verifier, then browser-buddy. Add one more layer if you run this orchestrator as a subagent rather than through the foreground command.
-- **The task list needs a foreground context.** Background subagents keep only a reduced built-in tool set, and the task tools are not in it. Run through the repo's foreground orchestrator command in the main session for real task tracking. If you are running as a background subagent, say so in your first line and keep the board in your own return instead of pretending to file it.
+- **The task list needs a foreground context.** Background subagents cannot reach the task tools; a `TaskList` call there errors with "not enabled in this context". Run through the repo's foreground orchestrator command in the main session for real task tracking. If you are running as a background subagent, say so in your first line and keep the board in your own return instead of pretending to file it.
 
 ## Return shape
 

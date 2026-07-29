@@ -8,17 +8,19 @@ description: >-
   unattended run. Triggers include "triage the open issues", "what should we
   work on", "plan the board", "sort these tickets". Returns a digest, never
   issue bodies, so the caller's context stays small.
+context: fork
+background: false
 ---
 
 # task-triage
 
 Reads the whole board so the caller does not have to. The output is a digest: buckets, an ordered queue, and clusters. Issue bodies never come back.
 
-This is deliberately the first action of any run. A caller that reads sixty issue bodies itself has spent its context before doing anything.
+This is deliberately the first action of any run. A caller that reads sixty issue bodies itself has spent its context before doing anything. On Claude Code this skill runs forked in its own context (`context: fork`), so even this procedure never enters the caller's window; the digest is the only thing that returns, and your final message must be exactly that digest.
 
 ## Inputs
 
-- **Scope** (optional): issue numbers, a label, or a focus area. Default is everything open.
+- **Scope** (optional): issue numbers, a label, or a focus area. Default is everything open. Scope as invoked: "$ARGUMENTS" (empty means everything open).
 - **Adapter**: `.claude/night-shift.md` in the consuming repo. Keys read here: `repo`, `priority_order`, `references`, `prior_art`, `overrides`. A missing adapter is not fatal for triage; a missing `repo` is, since there is no board to read.
 
 ## Use a scout for the reading pass

@@ -21,7 +21,7 @@ You have no edit or write tool, which makes that structural rather than a promis
 
 An environment fault is not a failed change, and reporting one as a failure sends a fixer to repair working code.
 
-Before returning any `FAIL`, confirm: the data store is reachable, the `seed` hook has run, and the app is up on the assigned port — either because provision started it or because you started it with the `start` hook. If any of those is wrong, return `ENVIRONMENT` with what is broken instead of `FAIL`. A port that was handed to you unused is not an environment fault; it is yours to start.
+Before returning any `FAIL`, confirm: the data store is reachable, the `seed` hook has run, and the app is up on the assigned port (either because provision started it or because you started it with the `start` hook). If any of those is wrong, return `ENVIRONMENT` with what is broken instead of `FAIL`. A port that was handed to you unused is not an environment fault; it is yours to start.
 
 ## Code level
 

@@ -62,7 +62,7 @@ Every dispatch line records both, because a bad result usually traces to a downg
 #126 verifier effort=high REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at medium
 ```
 
-The last two lines matter. Model overrides can be applied at dispatch; reasoning overrides cannot, because the `Agent` tool has no effort parameter, and on haiku there is no effort parameter to apply in the first place. Record what actually happened, never what was asked for.
+The last two lines matter: record what actually happened, never what was asked for. The resolution rules behind them are in the worktree-pipeline skill's `references/models-and-effort.md`.
 
 ## Answering the status question
 

@@ -14,7 +14,7 @@ description: >-
 
 Takes a queue of disjoint units and runs them through isolated worktrees to a landed commit. This skill knows which agent handles which stage; the agents know nothing about the pipeline.
 
-Everything project-specific comes from the adapter at `.claude/night-shift.md`. See `references/adapter.md` for the full spec and `references/adaptig-example.md` for a filled-in one. This skill calls hooks by name and never contains a literal project command.
+Everything project-specific comes from the adapter at `.claude/night-shift.md`. See `references/adapter.md` for the full spec, `references/adaptig-example.md` for a filled-in one, and `references/models-and-effort.md` for how model class and reasoning level resolve. This skill calls hooks by name and never contains a literal project command.
 
 ## Before the first dispatch
 
@@ -29,7 +29,7 @@ Then confirm the queue is actually disjoint. Overlapping units are not a paralle
 
 ### 1. Provision
 
-Create a worktree branched from the base branch, with its own dependencies, environment file, isolated data store, and a unique port. This is the skill's job, through the adapter's `provision` hook, because the delegate assumes it is already done.
+Create a worktree branched from the base branch, with its own dependencies, environment file, isolated data store, and a unique port. This is the skill's job, through the adapter's `provision` hook, because the delegate assumes it is already done. (The `Agent` tool's native `isolation: worktree` is not a substitute: it branches from the default branch and provisions nothing, no dependencies, no environment file, no data store, no port. Provisioning here is always the adapter's hook.)
 
 Starting the dev server is the adapter's call, not a constant. Some `provision` hooks start it; others deliberately leave the port free, because at provision time the worktree is a copy of the base branch with nothing implemented, so a server started then is stale before anyone needs it and whoever builds the change starts it themselves with the `start` hook. Provision says which it did on its `SERVER=` line.
 
@@ -78,9 +78,10 @@ Pushing stays with the caller (the orchestrator), not with the integrator, so it
 Inject this boilerplate at dispatch, filled in with values. No agent should have to be told it twice, and no agent should ever hardcode any of it.
 
 - **Worktree path.** "`cd` there first and confirm. All edits and version control commands stay inside it. Never touch the primary checkout."
+- **Read the built repo's ground rules first.** If the worktree root carries an `AGENTS.md` or `CLAUDE.md`, read it before implementing. Dispatched agents do not inherit it automatically, and it is where the repo's non-negotiables live.
 - **Read-only paths** it may consult (reference implementations, docs, an outer planning repo), passed as values.
 - **The assigned port**, and what is on it, taken from provision's `SERVER=` line rather than assumed: either "the server is already running on it" or "the port is yours and unused; build and start it yourself with the `start` hook, and kill it when you are done."
-- **Stop only the process it started, by its PID.** Never by name. `pkill -f "<start command>"` matches every lane's server, not just this one, so one unit's cleanup kills the app another unit is mid-verification against — which surfaces as an unreachable server and a `FAIL` written against working code. The port belongs to the unit; the process table is shared.
+- **Stop only the process it started, by its PID.** Never by name. `pkill -f "<start command>"` matches every lane's server, not just this one, so one unit's cleanup kills the app another unit is mid-verification against, which surfaces as an unreachable server and a `FAIL` written against working code. The port belongs to the unit; the process table is shared.
 - **Its data store is its own.** Mutate it freely; reset with the `seed` hook. An unreachable data store is an environment failure to report, not evidence the work is broken.
 - **Toolchain commands by hook name** (`typecheck`, `build`, `test`, `seed`, `start`), never as literal commands.
 - **Browser work goes through `browser-buddy`**, with URL, credentials, and the exact journey. Agents do not drive browsers directly.
@@ -95,9 +96,7 @@ Log every dispatch with its model and reasoning level, so a bad result traces to
 #126 delegate model=opus effort=high lane=2 worktree=/w/issue-126 port=4102
 ```
 
-Model overrides apply at dispatch (the `Agent` tool takes a `model` parameter). **Reasoning overrides do not**: there is no dispatch-time effort parameter, so an agent runs at the `effort` pinned in its own definition, or inherits the session level if it pins none. If a run asks for a reasoning level you cannot apply, log it as requested-but-not-applied and use the model lever instead. Never log a level that did not take effect.
-
-Two roles pin no level at all: `night-shift-scout` and `night-shift-integrator` are on haiku, which takes no effort parameter. Log those as `effort=n/a` rather than inventing one, and answer any request to raise their reasoning by overriding the model up to sonnet.
+Model overrides apply at dispatch; reasoning overrides do not (there is no dispatch-time effort parameter), and the haiku roles log `effort=n/a`. Never log a level that did not take effect. The full resolution rules live in `references/models-and-effort.md`.
 
 ## Without a subagent roster
 
