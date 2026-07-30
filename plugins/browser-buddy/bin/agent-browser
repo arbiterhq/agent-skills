@@ -57,15 +57,18 @@ _cache_dir="${TMPDIR:-/tmp}/agent-browser-flagcache-${UID:-0}"
 _help_flags() {
   # Print every flag token documented in `$AB $1 --help` (empty $1 = top level).
   local sub="$1" key stamp cache
-  stamp="$(stat -c %Y "$AB" 2>/dev/null || echo 0)"
+  stamp="$(stat -c %Y "$AB" 2> /dev/null || echo 0)"
   key="${sub:-_root}"
   cache="$_cache_dir/${stamp}.${key}"
-  if [ -r "$cache" ]; then cat "$cache"; return 0; fi
+  if [ -r "$cache" ]; then
+    cat "$cache"
+    return 0
+  fi
   local help
   if [ -n "$sub" ]; then
-    help="$("$AB" "$sub" --help 2>/dev/null || true)"
+    help="$("$AB" "$sub" --help 2> /dev/null || true)"
   else
-    help="$("$AB" --help 2>/dev/null || true)"
+    help="$("$AB" --help 2> /dev/null || true)"
   fi
   [ -n "$help" ] || return 1
   # Only read option *definition* lines — those that begin with a dash after
@@ -79,14 +82,14 @@ _help_flags() {
     | sed -E 's/^[[:space:],(]//' \
     | sort -u)"
   [ -n "$flags" ] || return 1
-  mkdir -p "$_cache_dir" 2>/dev/null || true
-  printf '%s\n' "$flags" > "$cache" 2>/dev/null || true
+  mkdir -p "$_cache_dir" 2> /dev/null || true
+  printf '%s\n' "$flags" > "$cache" 2> /dev/null || true
   printf '%s\n' "$flags"
 }
 
 _subcommands() {
   # Subcommand names are the non-flag words in the top-level help's command list.
-  "$AB" --help 2>/dev/null \
+  "$AB" --help 2> /dev/null \
     | grep -oE '^[[:space:]]+[a-z][a-z0-9-]*' \
     | tr -d ' ' | sort -u || true
 }
@@ -98,7 +101,7 @@ _flag_guard() {
   # Never interfere with a help or version request.
   local a
   for a in "$@"; do
-    case "$a" in --help|-h|--version|-V) return 0 ;; esac
+    case "$a" in --help | -h | --version | -V) return 0 ;; esac
   done
 
   local subs sub=""
@@ -107,7 +110,10 @@ _flag_guard() {
   for a in "$@"; do
     [ "$a" = "--" ] && break
     case "$a" in -*) continue ;; esac
-    if printf '%s\n' "$subs" | grep -qxF -- "$a"; then sub="$a"; break; fi
+    if printf '%s\n' "$subs" | grep -qxF -- "$a"; then
+      sub="$a"
+      break
+    fi
   done
   # No recognizable subcommand: not ours to judge.
   [ -n "$sub" ] || return 0
@@ -122,7 +128,10 @@ _flag_guard() {
   local bad=() seen_ddash=0 tok
   for tok in "$@"; do
     if [ "$seen_ddash" = 1 ]; then continue; fi
-    if [ "$tok" = "--" ]; then seen_ddash=1; continue; fi
+    if [ "$tok" = "--" ]; then
+      seen_ddash=1
+      continue
+    fi
     # Only judge things that are unambiguously flag-shaped. A single-dash token
     # must be one letter (so `-1`, `-100`, `-abc` are treated as values, not
     # flags), and a double-dash token must start with a letter.
