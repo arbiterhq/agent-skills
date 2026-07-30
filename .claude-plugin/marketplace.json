@@ -19,13 +19,7 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/browser-buddy",
-      "keywords": [
-        "browser",
-        "automation",
-        "scraping",
-        "testing",
-        "screenshots"
-      ]
+      "keywords": ["browser", "automation", "scraping", "testing", "screenshots"]
     },
     {
       "name": "artistic-vision",
@@ -62,13 +56,7 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/onepassword",
-      "keywords": [
-        "1password",
-        "secrets",
-        "op",
-        "ssh-keys",
-        "credentials"
-      ]
+      "keywords": ["1password", "secrets", "op", "ssh-keys", "credentials"]
     },
     {
       "name": "render",
@@ -81,14 +69,7 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/render",
-      "keywords": [
-        "render",
-        "deployment",
-        "render.yaml",
-        "ssh",
-        "hosting",
-        "api"
-      ]
+      "keywords": ["render", "deployment", "render.yaml", "ssh", "hosting", "api"]
     },
     {
       "name": "night-shift",
@@ -122,13 +103,7 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/primer",
-      "keywords": [
-        "primer",
-        "scaffolding",
-        "workflow",
-        "bootstrap",
-        "claude-code"
-      ]
+      "keywords": ["primer", "scaffolding", "workflow", "bootstrap", "claude-code"]
     }
   ]
 }

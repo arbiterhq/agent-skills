@@ -57,14 +57,23 @@ const agg = (arm) => {
     factOK: sum((r) => r.facts_correct.length),
     factTotal,
     factAcc: factTotal ? sum((r) => r.facts_correct.length) / factTotal : null,
-    fabProvable: sum((r) => r.provable_fabrications.length) + sum((r) => r.facts_fabricated.length),
+    // Includes fabricated URL citations: evidence pointing at a URL the browser
+    // never requested is invented evidence, and is the strongest objective signal
+    // the harness has. Omitting it here previously zeroed out the headline.
+    fabProvable:
+      sum((r) => r.provable_fabrications.length) +
+      sum((r) => r.facts_fabricated.length) +
+      sum((r) => r.fabricated_url_citations.length),
     fabJudged: jsum((r) => r.judge.fabrications.length),
     falsePos: jsum((r) => r.judge.false_positives.length),
+    // Provable only. Judged fabrications are counted separately because they
+    // depend on the answer key being a complete description of the page: a true
+    // detail the key does not happen to list reads to the judge as invented.
     trialsWithFab: rs.filter(
       (r) =>
         r.provable_fabrications.length > 0 ||
         r.facts_fabricated.length > 0 ||
-        (r.judge && r.judge.fabrications.length > 0)
+        r.fabricated_url_citations.length > 0
     ).length,
     trialsWithFP: judged.filter((r) => r.judge.false_positives.length > 0).length,
     correctVerdict: judged.filter((r) => r.judge.reached_correct_overall_verdict).length,
@@ -119,8 +128,8 @@ line(
   "**Trials containing a fabrication**",
   (x) => `**${x.trialsWithFab}/${x.n}** (${P(x.trialsWithFab / x.n)})`
 );
-line("Fabrications, provable from access log", (x) => x.fabProvable);
-line("Fabrications, judged", (x) => x.fabJudged);
+line("Fabrications, provable from the access log", (x) => x.fabProvable);
+line("Fabrications, judged (see caveat)", (x) => x.fabJudged);
 line("Trials with a false positive", (x) => `${x.trialsWithFP}/${x.judgedN}`);
 line("Correct overall verdict", (x) => `${x.correctVerdict}/${x.judgedN}`);
 line("Required-page coverage", (x) => P(x.coverage));
