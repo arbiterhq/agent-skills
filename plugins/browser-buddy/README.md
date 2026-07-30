@@ -21,6 +21,7 @@ That runs `bun install`, downloads Chrome for Testing (skipped if a compatible C
 - `skills/agent-browser/SKILL.md`: entry point for agents; the core loop, sessions, and hard-won gotchas, deferring to `agent-browser skills get core --full` for the full reference.
 - `agents/browser-buddy.md`: the operator agent definition (`model: sonnet`, `effort: medium`, preloads the skill).
 - `bin/agent-browser`: bash shim that resolves the vendored binary.
+- `eval/`: evaluation harness that scores the agent against a local site with planted defects and a known answer key, across model and effort configurations. Measures defect recall, fabrication rate, session hygiene, and cost per trial. See `eval/README.md`.
 
 Note: upstream distributes its own `agent-browser` skill stub. If you install both this plugin and upstream's, the skill names overlap; keep one.
 

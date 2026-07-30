@@ -13,13 +13,19 @@
       "description": "Browser automation via Vercel's agent-browser CLI. Ships the agent-browser skill (snapshot-ref workflow, session hygiene, JPEG screenshots) and the browser-buddy agent: a sonnet-powered operator that takes a high-level browsing or testing task and returns a concise findings report.",
       "source": "./plugins/browser-buddy",
       "category": "automation",
-      "version": "0.3.3",
+      "version": "0.4.0",
       "author": {
         "name": "Mike Riley",
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/browser-buddy",
-      "keywords": ["browser", "automation", "scraping", "testing", "screenshots"]
+      "keywords": [
+        "browser",
+        "automation",
+        "scraping",
+        "testing",
+        "screenshots"
+      ]
     },
     {
       "name": "artistic-vision",
@@ -56,7 +62,13 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/onepassword",
-      "keywords": ["1password", "secrets", "op", "ssh-keys", "credentials"]
+      "keywords": [
+        "1password",
+        "secrets",
+        "op",
+        "ssh-keys",
+        "credentials"
+      ]
     },
     {
       "name": "render",
@@ -69,7 +81,14 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/render",
-      "keywords": ["render", "deployment", "render.yaml", "ssh", "hosting", "api"]
+      "keywords": [
+        "render",
+        "deployment",
+        "render.yaml",
+        "ssh",
+        "hosting",
+        "api"
+      ]
     },
     {
       "name": "night-shift",
@@ -103,7 +122,13 @@
         "email": "mike@posthuman.help"
       },
       "homepage": "https://github.com/arbiterhq/agent-skills/tree/main/plugins/primer",
-      "keywords": ["primer", "scaffolding", "workflow", "bootstrap", "claude-code"]
+      "keywords": [
+        "primer",
+        "scaffolding",
+        "workflow",
+        "bootstrap",
+        "claude-code"
+      ]
     }
   ]
 }
