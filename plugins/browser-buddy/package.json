@@ -12,7 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "agent-browser": "^0.32.1"
+    "agent-browser": "^0.33.1"
   },
   "devDependencies": {
     "prettier": "^3.8.2",

@@ -71,16 +71,39 @@ _help_flags() {
     help="$("$AB" --help 2> /dev/null || true)"
   fi
   [ -n "$help" ] || return 1
-  # Only read option *definition* lines — those that begin with a dash after
-  # indentation. Scraping the whole help text would whitelist any flag merely
-  # mentioned in prose or in another subcommand's example, which is how `-s`
-  # (a snapshot flag) first slipped past this guard on `screenshot`.
+  # Short flags come only from option *definition* lines — those that begin with
+  # a dash after indentation. Scraping single-letter tokens out of the whole help
+  # text would whitelist any `-x` merely mentioned in prose or an example, which
+  # is how `-s` (a snapshot flag) first slipped past this guard on `screenshot`.
   local flags
   flags="$(printf '%s\n' "$help" \
     | grep -E '^[[:space:]]+-' \
     | grep -oE '(^|[[:space:],(])--?[A-Za-z][A-Za-z0-9-]*' \
     | sed -E 's/^[[:space:],(]//' \
     | sort -u)"
+
+  # Long flags additionally come from anywhere in a *subcommand's* help, not just
+  # its dash-leading option lines. Real flags get declared on the `Usage:` line
+  # (`read [--llms <index|full>]`), on the signature lines of nested subcommands
+  # (`skills get <name> --full`, `state clear [--all]`, `state clean
+  # --older-than`), and in the Examples block only (`plugin run ... --payload`).
+  # Without this the guard rejects documented commands, including the
+  # `skills get core --full` that our own SKILL.md tells agents to run.
+  #
+  # Long-only, and scoped to subcommand help, for two separate reasons:
+  #   - Short flags stay restricted to definition lines, so a bare `-s` in prose
+  #     or an example can't be whitelisted for a subcommand that has no `-s`.
+  #   - Doing this to the top-level help would hoist every subcommand's flags
+  #     into the global set, so a `--tags` typo on `screenshot` would sail
+  #     through instead of being caught.
+  if [ -n "$sub" ]; then
+    local long
+    long="$(printf '%s\n' "$help" \
+      | grep -oE '(^|[[:space:],([])--[A-Za-z][A-Za-z0-9-]*' \
+      | sed -E 's/^[[:space:],([]//' \
+      | sort -u)"
+    flags="$(printf '%s\n%s\n' "$flags" "$long" | sed '/^$/d' | sort -u)"
+  fi
   [ -n "$flags" ] || return 1
   mkdir -p "$_cache_dir" 2> /dev/null || true
   printf '%s\n' "$flags" > "$cache" 2> /dev/null || true
@@ -88,10 +111,25 @@ _help_flags() {
 }
 
 _subcommands() {
-  # Subcommand names are the non-flag words in the top-level help's command list.
-  "$AB" --help 2> /dev/null \
-    | grep -oE '^[[:space:]]+[a-z][a-z0-9-]*' \
-    | tr -d ' ' | sort -u || true
+  # Subcommand names come from two places in the top-level help, because it does
+  # not list them all the same way.
+  #
+  #   1. Indented bare words — the ordinary command list.
+  #   2. The word right after `agent-browser` in any usage or example line. Some
+  #      commands appear ONLY this way: `find` is introduced as
+  #      "Find Elements:  agent-browser find <locator> <value> <action>", so it
+  #      never shows up as an indented bare word.
+  #
+  # Pass 1 alone is actively wrong, not merely incomplete: it harvests `find`'s
+  # locator names (`role`, `text`, `label`, `first`, `nth`) as if they were
+  # commands. `find role button click --name Submit` then resolves to subcommand
+  # `role`, whose help is the top-level help, so `--name` looks invented and a
+  # documented command gets refused. With `find` present it matches first, in
+  # argument order, and the locator words are never reached.
+  {
+    "$AB" --help 2> /dev/null | grep -oE '^[[:space:]]+[a-z][a-z0-9-]*' | tr -d ' '
+    "$AB" --help 2> /dev/null | grep -oE 'agent-browser +[a-z][a-z0-9-]*' | awk '{print $2}'
+  } | sort -u || true
 }
 
 _flag_guard() {
