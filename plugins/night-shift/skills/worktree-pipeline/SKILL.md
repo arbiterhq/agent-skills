@@ -98,12 +98,8 @@ Log every dispatch with its model and reasoning level, so a bad result traces to
 
 Model overrides apply at dispatch; reasoning overrides do not (there is no dispatch-time effort parameter), and a role overridden down to haiku logs `effort=n/a` because haiku takes no level. Never log a level that did not take effect. The full resolution rules live in `references/models-and-effort.md`.
 
+This is a log, not a subject to raise with the user. Mention the dispatch-time effort limit only if they asked for a level you could not apply; otherwise it is a non-event and stays out of the report.
+
 ## Without a subagent roster
 
-Codex, Gemini, and any harness without agents run the same procedure in one context. This is a real fallback, not a stub, and it changes three things:
-
-- **Drop the concurrency cap to 1.** One context cannot supervise parallel lanes, and pretending otherwise produces half-finished worktrees.
-- **Context fills much faster**, because the reading, the implementation, and the verification all land in one window. Provision, build, verify, integrate, and tear down one unit completely before starting the next, and keep per-unit notes to a few lines.
-- **Run the stages as phases of your own work**, in the same order, with the same separations of concern. In particular, still write the acceptance criteria down before implementing, and still check them explicitly afterward against the running app. The value of the split survives without the agents; what is lost is the isolation, not the discipline.
-
-Everything else holds: worktree per unit, disjoint work only, one integration at a time, and the same contract values.
+If the harness has no agents — Codex, Gemini — read `references/without-subagents.md`: the same procedure runs in one context, at a cap of 1. Do not read it when a subagent roster is available.

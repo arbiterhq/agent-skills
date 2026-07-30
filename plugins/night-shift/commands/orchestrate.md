@@ -35,4 +35,6 @@ Parse into parameters, then fall back to the adapter (`.claude/night-shift.md`),
 
 Ordering in the scope is meaningful. `#90 then #126` means that order, and it overrides the priority sort.
 
-State the resolved parameters in one block before the first dispatch, so the run's terms are visible and correctable. If an argument asked for a reasoning level, say plainly that reasoning cannot be overridden at dispatch, name the two places it can be set (the agent definition's `effort`, or the session level), and say what you are doing instead.
+State the resolved parameters in one block before the first dispatch, so the run's terms are visible and correctable.
+
+If — and only if — an argument asked for a reasoning level, say plainly that reasoning cannot be overridden at dispatch, name the two places it can be set (the agent definition's `effort`, or the session level), and say what you are doing instead. When no argument asked for one, say nothing about effort at all: the parameter block reports what the run is doing, not what the harness cannot do.

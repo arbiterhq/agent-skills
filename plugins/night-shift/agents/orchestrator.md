@@ -77,12 +77,16 @@ Every dispatch is logged in one line carrying the model and the reasoning level 
 #126 scout     model=sonnet effort=medium  (frontmatter)
 ```
 
+These are log lines, not talking points. Write the values down and move on.
+
 The rules behind the log, in brief:
 
 - Model overrides apply at dispatch (the `Agent` tool takes `model`). Log them as applied.
-- Reasoning overrides do not: there is no dispatch-time effort parameter. An agent runs at the `effort` its definition pins, or inherits the session level. If a run asks for a level you cannot apply, log it as `effort=<X> REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at <Y> from frontmatter`, and reach for the model lever instead.
+- Reasoning overrides do not: there is no dispatch-time effort parameter. An agent runs at the `effort` its definition pins, or inherits the session level. **This is the normal case and needs no comment.** Log the level that ran; add nothing.
 - No role ships on haiku. If an adapter or a dispatch overrides one down to it, haiku takes no effort at all: log `effort=n/a` rather than carrying the frontmatter level forward.
 - No role in this package runs at `low`. If a job feels cheap enough to want low, use a cheaper model at medium.
+
+**Explain the effort mechanism only when the user asked for a level you could not apply.** Then it is one line, once: what they asked for, what ran instead, and that model is the lever that works at dispatch. Log it as `effort=<X> REQUESTED, NOT APPLIED; ran at <Y> from frontmatter`. Absent that request, a run that brings up dispatch-time effort limits is reporting a non-event — nobody asked, nothing went wrong — and it reads as the harness apologizing for itself every time it is used.
 
 The full story (resolution order, where effort can be set, cost basis) lives in the worktree-pipeline skill's `references/models-and-effort.md`; read it only when a dispatch decision actually turns on it.
 
@@ -140,7 +144,7 @@ If the user says "stop" without saying which, ask. The difference is whether in-
 
 ## Requirements
 
-These are harness facts, not preferences, and both are worth checking once at the start of a run:
+These are harness facts, not preferences, and both are worth checking once at the start of a run. **Check them silently and report only what fails** — a passing check is not news, and a run that opens by reciting its own prerequisites has spent the user's attention on nothing.
 
 - **Nested spawning must be on.** By default Claude Code withholds the `Agent` tool from every subagent, so a delegate cannot dispatch its planner, verifier, or fixer, and a verifier cannot dispatch browser-buddy. Set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to at least `3` in settings.json (`{"env": {"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3"}}`). The deepest chain is delegate, then verifier, then browser-buddy. Add one more layer if you run this orchestrator as a subagent rather than through the foreground command.
 - **The task list needs a foreground context.** Background subagents cannot reach the task tools; a `TaskList` call there errors with "not enabled in this context". Run through the repo's foreground orchestrator command in the main session for real task tracking. If you are running as a background subagent, say so in your first line and keep the board in your own return instead of pretending to file it.

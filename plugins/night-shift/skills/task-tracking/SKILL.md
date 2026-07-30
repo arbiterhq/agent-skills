@@ -55,14 +55,15 @@ Record the transition, not the story. "returned-green, a1b2c3d" is the entry; th
 Every dispatch line records both, because a bad result usually traces to a downgrade:
 
 ```
-#126 planner  model=fable  effort=high     (frontmatter)
-#126 delegate model=opus   effort=high     (frontmatter)
-#126 scout    model=sonnet effort=medium   (frontmatter)
-#126 integrator model=opus effort=high     (model override applied; level from override class default)
-#126 verifier effort=high REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at medium
+#126 planner    model=fable  effort=high
+#126 delegate   model=opus   effort=high
+#126 scout      model=sonnet effort=medium
+#126 integrator model=opus   effort=high   (model override applied)
 ```
 
-The last two lines matter: record what actually happened, never what was asked for. The resolution rules behind them are in the worktree-pipeline skill's `references/models-and-effort.md`.
+Record what actually ran, never what was asked for.
+
+These are log lines, not talking points. Effort is worth a sentence to the user in exactly one case: they asked for a level that could not be applied, in which case say so once and move on. Otherwise write the level down and say nothing about it — an unprompted note explaining that reasoning cannot be set at dispatch is a non-event reported as a defect. The resolution rules are in the worktree-pipeline skill's `references/models-and-effort.md`.
 
 ## Answering the status question
 
@@ -85,8 +86,4 @@ Worth writing to a ticket instead of here: an ordering constraint ("do not land 
 
 ## Without the task tools
 
-Background subagents keep a reduced built-in tool set, and the task tools are not in it. Codex and Gemini have no task list at all. In either case:
-
-- Keep the same list in a single compact block you rewrite each turn, in the transcript or in a scratch file. Same fields, same states, same transitions.
-- Rewrite it in full on each update rather than appending deltas, so the current state is always readable in one place.
-- Say once, at the start, that you are tracking this way. A caller who thinks entries are being filed and finds nothing afterward has lost the run's history.
+If a `TaskCreate` call errors with "not enabled in this context" — background subagents, Codex, Gemini — read `references/without-task-tools.md` and track the same list by hand. Do not read it otherwise: in a foreground session the tools are there and the fallback does not apply.

@@ -52,6 +52,20 @@ Every dispatch is logged with model and reasoning level together, so a bad resul
 
 Record what actually happened, never what was asked for.
 
+## When to say any of this to the user
+
+Almost never. The dispatch record is a log; this file is a reference for decisions that
+turn on it. Neither is a script to read aloud.
+
+There is one trigger, and it is narrow: **the user asked for a reasoning level that
+could not be applied.** Then say it once — what they asked for, what ran instead, and
+that model is the lever that works at dispatch — and carry on.
+
+Absent that request, a run that volunteers "reasoning cannot be overridden at dispatch"
+is reporting a non-event as though it were a defect. Nobody asked, nothing failed, and
+every run says it, so it reads as the tooling apologizing for itself on a fixed
+schedule. Log the level that ran and move on.
+
 ## Cost basis
 
 List prices, checked 2026-07-25. Verify before quoting.
