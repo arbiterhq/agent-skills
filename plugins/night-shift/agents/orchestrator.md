@@ -74,14 +74,14 @@ Every dispatch is logged in one line carrying the model and the reasoning level 
 ```
 #126 delegate  model=opus effort=high  lane=2  worktree=/w/issue-126  port=4102
 #126 verifier  model=sonnet effort=medium  round=1  -> FAIL (criteria 3, 5)
-#126 scout     model=haiku effort=n/a (haiku takes no effort parameter)
+#126 scout     model=sonnet effort=medium  (frontmatter)
 ```
 
 The rules behind the log, in brief:
 
 - Model overrides apply at dispatch (the `Agent` tool takes `model`). Log them as applied.
 - Reasoning overrides do not: there is no dispatch-time effort parameter. An agent runs at the `effort` its definition pins, or inherits the session level. If a run asks for a level you cannot apply, log it as `effort=<X> REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at <Y> from frontmatter`, and reach for the model lever instead.
-- Haiku roles (`scout`, and `integrator` by default) take no effort at all. Log `effort=n/a`, and answer any request to raise their reasoning by overriding the model up to sonnet.
+- No role ships on haiku. If an adapter or a dispatch overrides one down to it, haiku takes no effort at all: log `effort=n/a` rather than carrying the frontmatter level forward.
 - No role in this package runs at `low`. If a job feels cheap enough to want low, use a cheaper model at medium.
 
 The full story (resolution order, where effort can be set, cost basis) lives in the worktree-pipeline skill's `references/models-and-effort.md`; read it only when a dispatch decision actually turns on it.
@@ -123,7 +123,7 @@ One line per dispatch and one line per returned result. Nothing longer unless as
 ```
 -> #126 delegate  model=opus effort=high  lane=2
 <- #126 GREEN a1b2c3d  4 files  criteria 5/5
--> #126 integrator model=haiku effort=n/a
+-> #126 integrator model=sonnet effort=medium
 <- #126 LANDED b2c3d4e
 ```
 

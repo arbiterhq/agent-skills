@@ -95,7 +95,7 @@
       "description": "Run a board of work unattended. A roster of small composable agents (orchestrator, delegate, planner, researcher, scout, verifier, fixer, integrator), three skills (task-triage, worktree-pipeline, task-tracking), and the /orchestrate, /drain, and /abort commands. Triages open issues, builds each unit in its own worktree, grades it against criteria it did not write, and lands it. All project specifics live in a .claude/night-shift.md adapter.",
       "source": "./plugins/night-shift",
       "category": "development",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "author": {
         "name": "Mike Riley",
         "email": "mike@posthuman.help"

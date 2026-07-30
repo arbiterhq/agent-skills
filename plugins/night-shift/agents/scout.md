@@ -6,7 +6,8 @@ description: >-
   pointers worth reading directly. Use for filesystem exploration, long
   documents, logs, or web pages, whenever the caller's context should not
   carry the corpus. Returns EXTRACT or POINTERS, never conclusions.
-model: haiku
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 ---
 

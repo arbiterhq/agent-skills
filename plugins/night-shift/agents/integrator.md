@@ -6,7 +6,8 @@ description: >-
   correct closing or referencing trailer. Use when a unit of work is verified
   green and ready to merge. Reads the diff so the caller does not have to.
   Escalates conflicts rather than resolving them. Never pushes.
-model: haiku
+model: sonnet
+effort: medium
 tools: Agent, Bash, Read, Grep, Glob, Skill
 ---
 

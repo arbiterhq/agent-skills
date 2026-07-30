@@ -1,6 +1,6 @@
 {
   "name": "night-shift",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Run a board of work unattended. Ships a roster of small composable agents (orchestrator, delegate, planner, researcher, scout, verifier, fixer, integrator), three skills (task-triage, worktree-pipeline, task-tracking), and the /orchestrate, /drain, and /abort commands. All project specifics live in a .claude/night-shift.md adapter, so the package runs against any repo unchanged.",
   "author": {
     "name": "Mike Riley",

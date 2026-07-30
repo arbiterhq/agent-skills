@@ -57,10 +57,10 @@ Both print the same closing summary shape, so the difference between them is wha
 | `night-shift-delegate`     | opus   | high   | owns one unit of work end to end                 |
 | `night-shift-planner`      | fable  | high   | approach plus acceptance criteria                |
 | `night-shift-researcher`   | opus   | high   | answers a question, read only                    |
-| `night-shift-scout`        | haiku  | n/a    | bulk reading, returns extracts or pointers       |
+| `night-shift-scout`        | sonnet | medium | bulk reading, returns extracts or pointers       |
 | `night-shift-verifier`     | sonnet | medium | grades a change against the criteria             |
 | `night-shift-fixer`        | fable  | high   | fixes a failed change against the criteria       |
-| `night-shift-integrator`   | haiku  | n/a    | writes the squash message and lands the branch   |
+| `night-shift-integrator`   | sonnet | medium | writes the squash message and lands the branch   |
 
 Every agent is usable on its own. Ask the researcher a question, hand the planner a goal, point the scout at a log. The pipeline is one way to compose them, not the only one.
 
@@ -80,7 +80,9 @@ Skills work in Codex and Gemini too. Agents and commands are Claude Code only, s
 
 ## Model classes and reasoning levels
 
-Four classes, in order of capability: `fable`, `opus`, `sonnet`, `haiku`. Fable and opus at high do judgment that is expensive to get wrong: planning, fixing, owning a unit. The token-heavy jobs sit lower: grading on sonnet at medium, reading and integrating on haiku, where the lever is a reading or return cap rather than a reasoning level. Any agent about to read a large corpus delegates that read to the scout, so expensive models spend context on judgment rather than on files.
+Four classes, in order of capability: `fable`, `opus`, `sonnet`, `haiku`. Fable and opus at high do judgment that is expensive to get wrong: planning, fixing, owning a unit. The token-heavy jobs sit at sonnet medium: grading, bulk reading, and integrating, where the lever is a reading or return cap rather than a reasoning level. Any agent about to read a large corpus delegates that read to the scout, so expensive models spend context on judgment rather than on files.
+
+Nothing ships on haiku. It stays in the class list as an override target, but sonnet at medium is the floor for every role: measured on a browser-operation suite with a known answer key, haiku cost the same per task as sonnet at low while taking three times the turns to get there, and was the only class that cited evidence it had never actually fetched. The suite is in `plugins/browser-buddy/eval/`.
 
 Model and reasoning level resolve independently, first match wins: dispatch-time model, then the adapter's override map, then the agent frontmatter, then the class default. `effort` is settable only in agent or command frontmatter, never at dispatch, and haiku takes no effort at all. The full rules, the dispatch-record convention, and the cost basis live in `skills/worktree-pipeline/references/models-and-effort.md`.
 

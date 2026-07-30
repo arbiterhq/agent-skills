@@ -57,8 +57,8 @@ Every dispatch line records both, because a bad result usually traces to a downg
 ```
 #126 planner  model=fable  effort=high     (frontmatter)
 #126 delegate model=opus   effort=high     (frontmatter)
-#126 scout    model=sonnet effort=medium   (model override applied)
-#126 integrator model=haiku effort=n/a     (haiku takes no effort parameter)
+#126 scout    model=sonnet effort=medium   (frontmatter)
+#126 integrator model=opus effort=high     (model override applied; level from override class default)
 #126 verifier effort=high REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at medium
 ```
 

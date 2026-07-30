@@ -96,7 +96,7 @@ Log every dispatch with its model and reasoning level, so a bad result traces to
 #126 delegate model=opus effort=high lane=2 worktree=/w/issue-126 port=4102
 ```
 
-Model overrides apply at dispatch; reasoning overrides do not (there is no dispatch-time effort parameter), and the haiku roles log `effort=n/a`. Never log a level that did not take effect. The full resolution rules live in `references/models-and-effort.md`.
+Model overrides apply at dispatch; reasoning overrides do not (there is no dispatch-time effort parameter), and a role overridden down to haiku logs `effort=n/a` because haiku takes no level. Never log a level that did not take effect. The full resolution rules live in `references/models-and-effort.md`.
 
 ## Without a subagent roster
 

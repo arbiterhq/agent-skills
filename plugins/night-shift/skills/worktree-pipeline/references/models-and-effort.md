@@ -4,7 +4,9 @@ The canonical reference for how the night-shift roster resolves model class and 
 
 ## Model classes
 
-Four classes, in order of capability: `fable`, `opus`, `sonnet`, `haiku`. The roster pins judgment-heavy roles (planner, fixer, delegate, orchestrator, researcher) on fable or opus at high, grading on sonnet at medium, and bulk reading and integration on haiku, where the cost control is a reading or return cap rather than a reasoning level. Any agent about to read a large corpus delegates the read to the scout, so expensive models spend context on judgment rather than on files.
+Four classes, in order of capability: `fable`, `opus`, `sonnet`, `haiku`. The roster pins judgment-heavy roles (planner, fixer, delegate, orchestrator, researcher) on fable or opus at high, and everything else (grading, bulk reading, integration) on sonnet at medium. Nothing ships on haiku; it remains available as an override target. Any agent about to read a large corpus delegates the read to the scout, so expensive models spend context on judgment rather than on files.
+
+Sonnet at medium is the floor for every role because the cheap tier did not turn out to be cheap. Measured on a browser-operation suite with planted defects and a known answer key, Haiku 4.5 cost the same per task as Sonnet at low ($0.188 against $0.185) while taking three times the turns and eight times the failed tool calls to get there, and it was the only class that fabricated evidence: it cited URLs it had never requested. A model that needs three times the steps gives back at the turn count whatever it saves on the per-token rate, and bulk reading is exactly where invented content is hardest to catch. The harness that produced those numbers is in `plugins/browser-buddy/eval/`.
 
 ## Where a reasoning level can be set
 
@@ -26,11 +28,11 @@ Model and reasoning level resolve independently, first match wins:
 3. the agent definition frontmatter
 4. the class default for reasoning level: fable and opus high, sonnet medium; haiku has none
 
-Overriding a model does not carry a reasoning level with it. Dropping an agent to haiku does not lower its level so much as remove the control.
+Overriding a model does not carry a reasoning level with it. Dropping an agent to haiku does not lower its level so much as remove the control, which is one of the reasons no role ships there.
 
 ## Haiku takes no reasoning level
 
-`night-shift-scout` and `night-shift-integrator` carry no `effort` field because Haiku 4.5 does not take the parameter. Dispatch records log them as `effort=n/a`. A request to make either think harder is answered by overriding the model up to sonnet, which does take a level. (This is from the documented model capability tables rather than a live capability query; if the harness simply drops the field on haiku, omitting it is still correct, just less load-bearing.)
+Haiku 4.5 does not take the `effort` parameter at all. No role ships on haiku, so this only matters when an adapter or a dispatch overrides one down to it: the override does not lower that role's reasoning level, it removes the control, and the dispatch record should log `effort=n/a` rather than carrying the frontmatter level forward. (This is from the documented model capability tables rather than a live capability query; if the harness simply drops the field on haiku, omitting it is still correct, just less load-bearing.)
 
 ## No role runs at low
 
@@ -43,8 +45,8 @@ Every dispatch is logged with model and reasoning level together, so a bad resul
 ```
 #126 planner  model=fable  effort=high     (frontmatter)
 #126 delegate model=opus   effort=high     (frontmatter)
-#126 scout    model=sonnet effort=medium   (model override applied)
-#126 integrator model=haiku effort=n/a     (haiku takes no effort parameter)
+#126 scout    model=sonnet effort=medium   (frontmatter)
+#126 integrator model=opus effort=high     (model override applied; level from override class default)
 #126 verifier effort=high REQUESTED, NOT APPLIED (no dispatch-time effort lever); ran at medium
 ```
 
@@ -63,4 +65,4 @@ List prices, checked 2026-07-25. Verify before quoting.
 
 Two levers, and they multiply: model class sets the per-token rate (a 10x spread across the roster), and reasoning level sets how many output tokens get spent on the same task (thinking tokens bill as output, so high can cost several times medium on identical work).
 
-Dated facts to revisit rather than bake in: Sonnet 5 introductory pricing ends 2026-08-31 and rises 50%, which raises the cost of the verifier, the only sonnet role in the roster; and prompt caching (cache reads cost about a tenth of input, against a 1.25x write premium on the 5-minute TTL) plus the batch API (50% off) are the two discounts that fit this workload, so an adapter should not make caching hard.
+Dated facts to revisit rather than bake in: Sonnet 5 introductory pricing ends 2026-08-31 and rises 50%, which raises the cost of the verifier, scout, and integrator, now three of the eight roles; and prompt caching (cache reads cost about a tenth of input, against a 1.25x write premium on the 5-minute TTL) plus the batch API (50% off) are the two discounts that fit this workload, so an adapter should not make caching hard.
