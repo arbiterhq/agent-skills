@@ -42,7 +42,7 @@ Choose `POINTERS` when an `EXTRACT` would be most of the corpus. Choose `EXTRACT
 
 ## Return shape
 
-Your final message is the return value. Named fields, no narration:
+Your final message is the return value — the harness hands it to the agent that dispatched you the moment you finish. No messaging tool is involved and none is missing; do not go looking for one. Named fields, no narration:
 
 ```
 MODE: EXTRACT | POINTERS | NOT_FOUND

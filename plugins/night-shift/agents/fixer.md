@@ -48,7 +48,7 @@ You also carry a project-scoped memory across runs. Treat it as hints, not facts
 
 ## Return shape
 
-Your final message is the return value. Named fields, no narration:
+Your final message is the return value — the harness hands it to the agent that dispatched you the moment you finish. No messaging tool is involved and none is missing; do not go looking for one. Named fields, no narration:
 
 - `SHA`: the new commit, or `none`
 - `FIXED`: which criteria numbers this round addressed, and how

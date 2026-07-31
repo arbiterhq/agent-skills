@@ -35,7 +35,7 @@ If everything comes back `HIGH`, you are not calibrating, you are decorating.
 
 ## Return shape
 
-Your final message is the return value. Named fields, no narration:
+Your final message is the return value — the harness hands it to the agent that dispatched you the moment you finish. No messaging tool is involved and none is missing; do not go looking for one. Named fields, no narration:
 
 - `ANSWER`: the direct answer, in one to three lines, first
 - `FINDINGS`: one per line, each with its source (path and line range, or URL and section) and confidence

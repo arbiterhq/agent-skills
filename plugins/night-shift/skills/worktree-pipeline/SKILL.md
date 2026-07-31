@@ -49,6 +49,8 @@ Dispatch `night-shift-delegate` against that worktree, in the background, with t
 - `BLOCKED` is parked with its reason and reported. It never stalls the other lanes, and it never gets retried in place without a change to its inputs.
 - An environment failure returns to provisioning once, then parks.
 
+A result is what the delegate's final message said, and only that. A lane that has returned nothing has no result: report the stall and park it, rather than reconstructing an outcome from git state, the process table, or how long it feels like it has been.
+
 Record the outcome as one line. Do not restate the delegate's report.
 
 ### 4. Integrate
@@ -85,7 +87,7 @@ Inject this boilerplate at dispatch, filled in with values. No agent should have
 - **Its data store is its own.** Mutate it freely; reset with the `seed` hook. An unreachable data store is an environment failure to report, not evidence the work is broken.
 - **Toolchain commands by hook name** (`typecheck`, `build`, `test`, `seed`, `start`), never as literal commands.
 - **Browser work goes through `browser-buddy`**, with URL, credentials, and the exact journey. Agents do not drive browsers directly.
-- **The required return shape** for that agent type.
+- **The required return shape** for that agent type, and that its final message is how that return is delivered — the harness hands it to the dispatching agent, with no messaging tool involved.
 - **The base branch**, so nothing branches from or merges to the wrong place.
 
 ## Dispatch record

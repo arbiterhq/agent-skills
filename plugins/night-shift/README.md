@@ -64,7 +64,9 @@ Both print the same closing summary shape, so the difference between them is wha
 
 Every agent is usable on its own. Ask the researcher a question, hand the planner a goal, point the scout at a log. The pipeline is one way to compose them, not the only one.
 
-Three rules are in every definition: the final message is the return value (named fields, not prose); state what was actually done, including skipped steps and failures; never widen your own scope.
+Three rules are in every definition: the final message is the return value, handed by the harness to whichever agent dispatched it, with no messaging tool involved (named fields, not prose); state what was actually done, including skipped steps and failures; never widen your own scope.
+
+The callers carry the other half of that contract. A delegate dispatches its stages synchronously and an orchestrator pings a lane that has gone quiet, and neither of them ever writes a return that a subagent did not give it: a stage that reported nothing leaves its criteria `UNVERIFIED`, because a fabricated grade is indistinguishable from a real one everywhere downstream.
 
 The delegate and the fixer carry a project-scoped persistent `memory`. Their definitions treat it as hints, not facts: the code on disk wins whenever they disagree, since a pre-production codebase churns.
 

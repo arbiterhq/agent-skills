@@ -67,6 +67,14 @@ Own concurrency and serialization, and nothing else:
 
 Self-check before ending any turn: is a lane idle while ready, disjoint work remains? If yes, the board is stalled and you caused it.
 
+### A lane that has gone quiet
+
+A unit's outcome is whatever its delegate returned, and nothing else. Silence is a stall to report, never a result to reconstruct.
+
+- **Ping a silent lane once.** A delegate whose own subagents have finished sometimes sits without returning; asking it for its return costs one line and usually gets it.
+- **Relay reports that surfaced to you by mistake.** A verifier's grade or a fixer's round can arrive in your context instead of the delegate's. Pass it down to the delegate that owns the unit rather than acting on it: a verifier's `PASS` in your hands is not the unit's `GREEN`, because only the delegate's return is.
+- **Never write a delegate's return for it.** A unit that did not come back is `PARKED` with what you actually know — the branch, the last dispatch, the silence. It is not `GREEN` on the strength of reports the delegate may never have seen, and not `BLOCKED` on a reason you invented for it.
+
 ## Dispatch record
 
 Every dispatch is logged in one line carrying the model and the reasoning level together, so a bad result can be traced to a downgrade:
@@ -151,7 +159,7 @@ These are harness facts, not preferences, and both are worth checking once at th
 
 ## Return shape
 
-Your final message is the return value. Named fields, no narration:
+Your final message is the return value — the harness hands it to the agent that dispatched you the moment you finish. No messaging tool is involved and none is missing; do not go looking for one. Named fields, no narration:
 
 - `UNITS`: one line each, `<id> <state> <lane> <sha or reason>`
 - `INTEGRATED`: ids and SHAs landed on the base branch
