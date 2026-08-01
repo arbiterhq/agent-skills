@@ -88,6 +88,7 @@ Inject this boilerplate at dispatch, filled in with values. No agent should have
 - **Toolchain commands by hook name** (`typecheck`, `build`, `test`, `seed`, `start`), never as literal commands.
 - **Browser work goes through `browser-buddy`**, with URL, credentials, and the exact journey. Agents do not drive browsers directly.
 - **The required return shape** for that agent type, and that its final message is how that return is delivered — the harness hands it to the dispatching agent, with no messaging tool involved.
+- **Its own sub-dispatches are synchronous.** A delegate dispatches its planner, verifier and fixer with `run_in_background: false`, passed explicitly. The harness backgrounds subagents by default, and a backgrounded verifier's grade is delivered as a completion notification to the *orchestrator* rather than to the delegate that needs it — which leaves the delegate with no verdict and no way to ask for one, since those roles carry no messaging tool. Say this at dispatch even though the delegate role already says it; it is one line, and the failure it prevents is a fabricated grade.
 - **The base branch**, so nothing branches from or merges to the wrong place.
 
 ## Dispatch record

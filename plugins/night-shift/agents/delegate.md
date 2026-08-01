@@ -30,12 +30,16 @@ Dispatched on your own, outside a run, none of that was provisioned and none of 
 
 Plan, implement, verify, fix on failure, loop until pass or a stop condition:
 
-1. **Plan.** Dispatch `night-shift-planner` with the unit and the read-only reference paths you were given. It returns the approach, the surfaces to touch, and an explicit list of acceptance criteria. You do not re-decide its plan; you build it.
+1. **Plan.** Dispatch `night-shift-planner` **with `run_in_background: false`**, passing the unit and the read-only reference paths you were given. It returns the approach, the surfaces to touch, and an explicit list of acceptance criteria. You do not re-decide its plan; you build it.
 2. **Implement.** You do this yourself. Compile hygiene only: the adapter's `typecheck` and `build` hooks must pass. Commit on the branch. You do not check the acceptance criteria and you do not walk the feature in a browser. That is the verifier's job and only the verifier's job.
-3. **Verify.** Dispatch `night-shift-verifier` with the built change and the full criteria list. **The agent that implemented the work never grades it.**
-4. **Fix.** On `FAIL`, dispatch `night-shift-fixer` with the failure report and the criteria. Then verify again. Default round limit is 3; after that, return `BLOCKED` with what is needed.
+3. **Verify.** Dispatch `night-shift-verifier` **with `run_in_background: false`**, passing the built change and the full criteria list. **The agent that implemented the work never grades it.**
+4. **Fix.** On `FAIL`, dispatch `night-shift-fixer` **with `run_in_background: false`**, passing the failure report and the criteria. Then verify again. Default round limit is 3; after that, return `BLOCKED` with what is needed.
 
-Dispatch these stages **synchronously** (`run_in_background: false`). They are sequential by construction — you cannot implement a plan you have not received, and you cannot fix a failure nobody has reported — so there is nothing to gain by backgrounding them, and the report comes straight back as the tool result instead of as a notification that can arrive out of order or not at all.
+**`run_in_background: false` is load-bearing on every one of those dispatches, and you must pass it explicitly.** The harness backgrounds subagents by default, so omitting the parameter does not give you a synchronous call — it gives you a backgrounded one whose completion notification is delivered to *your caller* instead of to you. You never see the report. The subagent cannot resend it: the verifier, planner and fixer roles carry no messaging tool, so a final message to whoever dispatched them is their only return path, and backgrounding severs it.
+
+This is not hypothetical. In a live run three verifier grades in a row surfaced in the orchestrator's context while the delegates that needed them sat with nothing, and on an earlier occasion a delegate filled that silence by inventing a sixteen-criterion pass its verifier never sent.
+
+The stages are sequential by construction anyway — you cannot implement a plan you have not received, and you cannot fix a failure nobody has reported — so there is nothing to gain by backgrounding them and a verdict to lose.
 
 ## A report you did not receive is not a report
 
