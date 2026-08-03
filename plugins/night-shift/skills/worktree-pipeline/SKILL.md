@@ -92,6 +92,27 @@ Inject this boilerplate at dispatch, filled in with values. No agent should have
 - **Scratch filenames are namespaced to the unit.** Any scratch directory the harness offers may be shared across concurrent lanes rather than per-session, so `server.log` in lane A is the same path as `server.log` in lane B. Tell each unit to prefix what it writes with its own id (`issue-126-server.log`). A lane that overwrote another's log has not just lost a file: it has manufactured evidence, and a verifier quoting that log will cite another lane's port as proof about this one. That happened in a live run and was caught only because the delegate re-established its evidence by PID.
 - **The base branch**, so nothing branches from or merges to the wrong place.
 
+### And nothing else. Hand over the ticket, not the answer.
+
+The list above is the whole brief: the ticket number, and the facts the agent cannot reach on its own. **Do not diagnose the defect, name a fix, sketch an architecture, or list candidate approaches.** The delegate reads the ticket, the code, and the prior art — all of which it has better access to than you, who have read none of them.
+
+The cost of getting this wrong is not wasted tokens, it is destroyed evidence. A delegate handed a hypothesis returns that hypothesis; its verifier then grades against acceptance criteria derived from the same hypothesis. The whole chain agrees with you and none of it is independent confirmation. In one run an orchestrator suggested deriving a delete order from the schema's FK graph, suggested containment over per-test teardown, and suggested making a signed-URL lapse reproducible — then reported all three back to the user as delegate insight. They may well have been the right calls. Nothing in that run could have told anyone otherwise, including the orchestrator.
+
+Three shapes that look like context and land as instructions:
+
+- **"Consider whether X."** Read as an option, obeyed as a directive. If X is genuinely the agent's call, saying it removes the call.
+- **"Prefer X over Y", "fix the class not the instance."** A design ruling wearing the clothes of a principle.
+- **"This is easy to get wrong because…"** An agent that cannot find the trap itself will not be saved by a sentence, and one that could have found it now never demonstrates that it would.
+
+The test before adding a line: **could the agent learn this from the ticket, the repo, or its own skills?** If yes, cut it. Keep only what is true about the environment, or about work that landed elsewhere in this run.
+
+Two things this rule does **not** forbid, because they are facts rather than judgments:
+
+- **What recently landed on files this unit will touch**, so a rebase or conflict is expected rather than discovered. State the commits and what they changed; stop short of saying how to resolve it.
+- **Scope boundaries the ticket does not carry** — a part gated on an unanswered question, a sibling issue that owns an adjacent file, a composed unit built later. The ticket cannot know these; only the run does.
+
+A brief that grows past the contract above plus a scope boundary is usually the orchestrator solving the ticket in advance.
+
 ## Dispatch record
 
 Log every dispatch with its model and reasoning level, so a bad result traces to a downgrade:
