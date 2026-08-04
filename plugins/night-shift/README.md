@@ -36,7 +36,17 @@ Neither is required, and both are degraded gracefully with a note in the return:
 /orchestrate any open bugs on github
 /orchestrate #90 then #126 --cap 2 --push after-each
 /orchestrate --base develop label:security
+/orchestrate --plan docs/platform-cleanup --push after-each
 ```
+
+`--plan` runs a plan instead of a board: `plan-queue` reads the step files, the plan's own order
+and dependency map become the queue, and each step goes to `night-shift-planned-delegate`, which
+implements it and has it graded without re-planning it. Everything else — worktrees, verification,
+serialized integration, push policy — is identical.
+
+The plan itself can come from anywhere — an audit's remediation, a hand-written runbook, a
+migration doc — or from the **`plan-forge`** skill, which writes one in exactly the format the
+run side consumes.
 
 `/orchestrate` runs in the foreground, so it is a conversation. Interject at any time: add a task, drop one, reprioritize, redirect, or ask what is running.
 
@@ -55,7 +65,9 @@ Both print the same closing summary shape, so the difference between them is wha
 | -------------------------- | ------ | ------ | ------------------------------------------------ |
 | `night-shift-orchestrator` | opus   | high   | holds the board, dispatches, never does the work |
 | `night-shift-delegate`     | opus   | high   | owns one unit of work end to end                 |
+| `night-shift-planned-delegate` | opus | high | owns one step of an already-written plan         |
 | `night-shift-planner`      | fable  | high   | approach plus acceptance criteria                |
+| `night-shift-plan-author`  | fable  | high   | writes a batch of step files for a forged plan   |
 | `night-shift-researcher`   | opus   | high   | answers a question, read only                    |
 | `night-shift-scout`        | sonnet | medium | bulk reading, returns extracts or pointers       |
 | `night-shift-verifier`     | sonnet | medium | grades a change against the criteria             |
@@ -75,6 +87,8 @@ Names are prefixed because the pipeline dispatches by name and `planner` or `sco
 ## The skills
 
 - **`task-triage`** reads a whole GitHub issue board and returns a digest: a bucket per issue, an ordered queue, and disjoint clusters with file footprints. Never returns issue bodies. All `gh` calls sit in one section so another tracker can be swapped in.
+- **`plan-queue`** does the same job for work that is already planned: a folder of markdown step files, a plan document, tracker issues, or a mix. Returns an ordered queue with a dependency and parallelism map, and the checkpoints where the run must stop and ask. It takes the plan's order as settled — no priority sort, no bug budget — and defaults every undeclared pairing to serial.
+- **`plan-forge`** writes the plan the other two run: investigate (researchers + scouts) → design (parallel planner passes with distinct lenses) → author (plan-author batches that verify every claim against the repo before writing it) → harmonize (template compliance, shared-artifact joints, an index reconciled from what was actually written). Output is an indexed folder of self-contained step files in the exact format `plan-queue` and the planned delegate consume — or that any competent agent can be pointed at solo. Authoring is pinned to fable on purpose: a plan error is copied into every downstream step, while an execution error stays local.
 - **`worktree-pipeline`** runs a queue of disjoint units through isolated worktrees: provision, dispatch, route, integrate one at a time, publish, tear down. Holds the concurrency rules and the contract every dispatched agent receives.
 - **`task-tracking`** keeps the run's list in the built-in task list, one entry per unit with state, lane, and the model and effort of each dispatch. Files nothing to GitHub, on purpose.
 
@@ -95,7 +109,7 @@ Model and reasoning level resolve independently, first match wins: dispatch-time
 - **Task tools need a foreground context.** Background subagents keep a reduced built-in tool set, and `TaskCreate` and friends are not in it. That is why `/orchestrate` is the entry point: run as a background subagent, the orchestrator cannot file entries and has to keep the board in its return instead.
 - **Scout has no `Agent` tool** by frontmatter, so it structurally cannot recurse. Planner, researcher, verifier, and integrator have no `Edit` or `Write`, so read-only and grade-only roles are enforced rather than promised.
 - **Skills are not preloaded into agents.** Agents invoke them through the `Skill` tool by name. Preloading a skill whose body says "dispatch a delegate" into an agent that is itself a delegate is how recursion starts.
-- **`task-triage` runs forked.** Its `context: fork` frontmatter puts the whole reading pass in its own context on Claude Code; only the digest returns. Other harnesses ignore the field and run it inline, which the skill body accounts for.
+- **`task-triage` and `plan-queue` run forked.** Their `context: fork` frontmatter puts the whole reading pass in its own context on Claude Code; only the digest returns. Other harnesses ignore the field and run it inline, which both skill bodies account for.
 - **Commands stay in `commands/` for now.** Claude Code treats `.claude/commands/` as a legacy format in favor of skill-format commands, but `commands/` is still the plugin command surface for marketplace installs. Migration is deferred until plugin skill-commands are settled; a consuming repo aliasing the run command is free to use the skill format (Adaptig's `/grind` does).
 
 ## Where it came from

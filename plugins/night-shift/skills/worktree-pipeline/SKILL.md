@@ -39,7 +39,7 @@ If provisioning fails, the unit never enters a lane. Report it as an environment
 
 ### 2. Dispatch
 
-Dispatch `night-shift-delegate` against that worktree, in the background, with the unit and the environment facts (see the contract below).
+Dispatch `night-shift-delegate` against that worktree, in the background, with the unit and the environment facts (see the contract below). If the queue came from a plan, this is `night-shift-planned-delegate` instead — see "Running from a plan" below for what else changes.
 
 **Do not wait on it.** If a lane is free and disjoint work remains, start the next one. Waiting on a running unit while ready work sits idle is the single failure mode this pipeline exists to prevent.
 
@@ -66,6 +66,41 @@ The integrator lands a squash commit on the base branch and returns the SHA. It 
 - Reconcile the task: confirm the ticket closed if the trailer said it would, note where it shipped, and update the tracking issue.
 
 Pushing stays with the caller (the orchestrator), not with the integrator, so it stays serialized behind integration and only clean built state reaches the remote.
+
+## Running from a plan instead of a board
+
+When the queue came from the `plan-queue` skill rather than from `task-triage`, the machinery
+above is unchanged — provision, dispatch, route, integrate one at a time, publish, tear down —
+and six things differ:
+
+- **Dispatch `night-shift-planned-delegate`**, not `night-shift-delegate`. The plan already
+  carries the approach and usually the verification, so the planner stage does not apply. A unit
+  that came from the tracker with no plan file behind it still gets the ordinary delegate; the
+  digest says which is which.
+- **Pass the step file's absolute path**, plus the plan folder as a read-only path so the
+  delegate can read the index and its siblings. Pass the path, never a summary of the step: a
+  paraphrase in a dispatch brief is the orchestrator re-planning the step it was handed.
+- **The plan's order replaces the priority queue.** Fill lanes from the wave map. Do not
+  reorder by severity, do not apply a bug budget, and do not promote a step because it sounds
+  urgent.
+- **Dependencies gate provisioning, not dispatch.** A worktree branches from the base branch at
+  provision time, so a step whose dependency has returned green but has not yet been integrated
+  would be provisioned from a tree without it. Provision a dependent step only after its
+  dependencies have *landed*.
+- **An exclusive step gets the whole board.** Drain the live lanes, integrate what comes back,
+  then provision it alone. A move-only split racing a feature branch produces a conflict in
+  every file it touched, and resolving it by hand throws away the property that made the split
+  reviewable.
+- **Branch names carry no issue number**, so an `integrate` hook that derives a closing trailer
+  from `issue-<n>` will not fire. Name plan branches for the step (`plan-<id>-<slug>`) and pass
+  the trailer yourself, from the delegate's `CLOSES` and `REFS` fields.
+
+A `CHECKPOINT` in the digest stops the run. Report what the plan says needs confirming and ask;
+do not skip past it to the next buildable step, because everything after a checkpoint was
+ordered on the assumption that it happened.
+
+`BLOCKED (plan)` is not a build failure and does not retry. The plan and the repo disagree in a
+way that needs a decision. Park it, surface it verbatim, and keep the lanes moving.
 
 ## Rules this skill enforces
 

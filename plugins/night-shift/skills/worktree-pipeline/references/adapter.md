@@ -30,7 +30,8 @@ The test of whether the split is right: all three skills run against a repo that
 | --- | --- | --- | --- |
 | `push_policy` | `after-each` \| `batched` \| `never` | `never` | Publishing is opt-in. |
 | `concurrency_cap` | integer | `3` | Counts units, not processes. |
-| `priority_order` | list | `[security, bug, feature]` | How the build queue is ordered. |
+| `priority_order` | list | `[security, bug, feature]` | How the build queue is ordered. Ignored on a plan run, where the plan's own order wins. |
+| `plan_dir` | path | none | Default plan source for `plan-queue`: a folder of markdown step files, or a single plan document. Only read when the run is plan-driven. |
 | `hooks.preflight` | string | none | Run once before the first dispatch. Non-zero exit stops the run. |
 | `hooks.typecheck` | string | none | Compile hygiene, run inside a worktree. |
 | `hooks.test` | string | none | Run by the verifier when defined. |
@@ -53,6 +54,7 @@ base_branch: main
 push_policy: never
 concurrency_cap: 3
 priority_order: [security, bug, feature]
+plan_dir: docs/some-plan
 
 hooks:
   preflight: bash .claude/night-shift/preflight.sh

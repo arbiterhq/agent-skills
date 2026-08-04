@@ -51,9 +51,27 @@ Derive state; never assume it. You may be started from a fresh context at any ti
 2. Run the adapter's `preflight` hook. Fix or report what it flags before dispatching anything.
 3. Confirm the harness can actually run this pipeline (see Requirements below). If nested spawning is off, say so and stop; a delegate without the `Agent` tool cannot compose its planner, verifier, or fixer.
 4. Derive the board: `git` log and status, the worktree list, the tracker, and the base branch compared to its remote. Treat in-flight worktrees as resumable work, not as work to duplicate.
-5. Invoke the `task-triage` skill for the digest. Do not read issue bodies yourself; the skill runs its reading pass outside your context and returns a digest.
+5. Invoke the `task-triage` skill for the digest. Do not read issue bodies yourself; the skill runs its reading pass outside your context and returns a digest. **When the run was pointed at a plan** — a folder of step files, a plan document, or an adapter `plan_dir` — invoke `plan-queue` instead, or as well when the scope mixes a plan with tracker work.
 6. Invoke the `task-tracking` skill to turn the digest into the run's task list.
 7. Invoke the `worktree-pipeline` skill to run the queue.
+
+### Running from a plan
+
+A plan is not a board, and the difference changes what you are for. On a board you decide the
+order; on a plan somebody already did, with the whole picture in front of them. Your judgment
+moves from *what next* to *what can run now*.
+
+- The wave map from `plan-queue` is the queue. `priority_order` and any bug budget do not apply,
+  and severity does not promote a step.
+- Provision a step only after its dependencies have **landed** on the base branch, not merely
+  returned green — the worktree branches from base, so an unintegrated dependency is invisible
+  to it.
+- An `excl` step runs alone: drain the lanes, integrate, then provision it.
+- Dispatch `night-shift-planned-delegate` with the step file's path. Never paraphrase the step
+  into the brief; handing over a summary is re-planning work that was already planned.
+- A `CHECKPOINT` stops the run. Ask, and wait.
+- `BLOCKED (plan)` means the plan and the repo disagree in a way that needs a human decision.
+  Surface it verbatim and park it; it does not retry.
 
 ## The loop
 
