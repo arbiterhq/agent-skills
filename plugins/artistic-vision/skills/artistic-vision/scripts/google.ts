@@ -26,6 +26,82 @@ export const IMAGEN_MODEL = "gemini-3.1-flash-image-preview";
 export const IMAGEN_PRO_MODEL = "gemini-3-pro-image-preview";
 
 /**
+ * Aspect ratios accepted by ImageConfig.aspectRatio.
+ *
+ * Taken from the image-generation guide, not the SDK's ImageConfig typedoc —
+ * the typedoc omits 4:5 and 5:4, which the models do accept (Google's own
+ * multi-reference example passes "5:4").
+ */
+export const ASPECT_RATIOS = [
+  "1:1",
+  "2:3",
+  "3:2",
+  "3:4",
+  "4:3",
+  "4:5",
+  "5:4",
+  "9:16",
+  "16:9",
+  "21:9",
+] as const;
+
+/**
+ * Sizes accepted by ImageConfig.imageSize. Uppercase K is required; default 1K.
+ *
+ * Taken from the API's own rejection message, which is authoritative. The
+ * prose docs describe the smallest size as "512px (0.5K)", but "0.5K" is
+ * rejected — the literals it accepts are 512, 512P and 512PX.
+ */
+export const IMAGE_SIZES = [
+  "512",
+  "512P",
+  "512PX",
+  "1K",
+  "2K",
+  "4K",
+] as const;
+
+export interface ImageShapeOpts {
+  aspect?: string;
+  size?: string;
+}
+
+/**
+ * Build the `imageConfig` block for a generateContent image call.
+ *
+ * Returns undefined when neither flag is set, so the model's own defaults are
+ * left alone. Invalid values exit rather than fall through — a typo'd aspect
+ * ratio would otherwise be silently ignored and hand back a 1K square.
+ */
+export function buildImageConfig(
+  opts: ImageShapeOpts,
+): { aspectRatio?: string; imageSize?: string } | undefined {
+  const config: { aspectRatio?: string; imageSize?: string } = {};
+
+  if (opts.aspect !== undefined) {
+    if (!(ASPECT_RATIOS as readonly string[]).includes(opts.aspect)) {
+      console.error(
+        `Invalid --aspect "${opts.aspect}". Supported: ${ASPECT_RATIOS.join(", ")}`,
+      );
+      process.exit(1);
+    }
+    config.aspectRatio = opts.aspect;
+  }
+
+  if (opts.size !== undefined) {
+    if (!(IMAGE_SIZES as readonly string[]).includes(opts.size)) {
+      console.error(
+        `Invalid --size "${opts.size}". Supported: ${IMAGE_SIZES.join(", ")}`,
+      );
+      process.exit(1);
+    }
+    config.imageSize = opts.size;
+  }
+
+  return Object.keys(config).length ? config : undefined;
+}
+
+/**
  * Extract the first image part from a Gemini response as a base64 buffer.
  * Returns null if the response contains no image data.
  */

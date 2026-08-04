@@ -37,6 +37,51 @@ export function writeImageBuffer(path: string, buffer: Buffer): void {
   log.success(`Wrote ${path}`);
 }
 
+/** Extensions we can re-encode into, mapped to sharp's format name. */
+const ENCODABLE: Record<string, "png" | "jpeg" | "webp" | "avif" | "tiff"> = {
+  ".png": "png",
+  ".jpg": "jpeg",
+  ".jpeg": "jpeg",
+  ".webp": "webp",
+  ".avif": "avif",
+  ".tif": "tiff",
+  ".tiff": "tiff",
+};
+
+/**
+ * Write a model-generated image, re-encoding it to match the requested
+ * extension.
+ *
+ * The Gemini image models return whatever format they like — usually JPEG —
+ * regardless of the filename you asked for. Writing those bytes verbatim to
+ * `out.png` produces a file that lies about itself: `file` reports JPEG, and
+ * strict readers reject it (pdf-lib's embedPng rightly refuses JPEG bytes).
+ * The mismatch is invisible until something downstream breaks, so normalise
+ * here rather than leaving every caller to remember.
+ */
+export async function writeGeneratedImage(
+  path: string,
+  buffer: Buffer,
+): Promise<void> {
+  const target = ENCODABLE[extname(path).toLowerCase()];
+  if (!target) {
+    writeImageBuffer(path, buffer);
+    return;
+  }
+
+  const actual = (await sharp(buffer).metadata()).format;
+  if (actual === target) {
+    writeImageBuffer(path, buffer);
+    return;
+  }
+
+  // PNG is lossless, so re-encoding a JPEG into it adds no further loss.
+  const out = await sharp(buffer).toFormat(target).toBuffer();
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, out);
+  log.success(`Wrote ${path} (re-encoded ${actual ?? "unknown"} → ${target})`);
+}
+
 /** Parsed dimensions from strings like "128x64", "256", "x128", "50%". */
 export interface Dimensions {
   width?: number;

@@ -43,8 +43,12 @@ export function registerConvert(program: Command): void {
 
         log.info(`Converting: ${String(inputMeta.format)} → ${String(format)}`);
 
+        // PNG is lossless: sharp treats a `quality` option on it as a request
+        // to palette-quantize, silently crushing the image to 256 colours.
+        // That is never what someone converting *to* PNG wants, so only pass
+        // quality to the genuinely lossy formats.
         const buffer = await sharp(input)
-          .toFormat(format, { quality })
+          .toFormat(format, format === "png" ? {} : { quality })
           .toBuffer();
 
         writeImageBuffer(output, buffer);

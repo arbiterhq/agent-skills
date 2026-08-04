@@ -14,7 +14,7 @@ import {
   type Part,
 } from "./google";
 import { log } from "./log";
-import { loadImageAsBase64, writeImageBuffer } from "./util";
+import { loadImageAsBase64, writeGeneratedImage } from "./util";
 import { describeImage } from "./describe";
 
 export function registerExtract(program: Command): void {
@@ -77,7 +77,7 @@ export function registerExtract(program: Command): void {
           process.exit(1);
         }
 
-        writeImageBuffer(output, buffer);
+        await writeGeneratedImage(output, buffer);
 
         if (opts.inspect !== undefined) {
           const question =

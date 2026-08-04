@@ -12,10 +12,11 @@ import {
   IMAGEN_MODEL,
   extractImageFromResponse,
   judgeImage,
+  buildImageConfig,
   type Part,
 } from "./google";
 import { log } from "./log";
-import { loadImageAsBase64, writeImageBuffer } from "./util";
+import { loadImageAsBase64, writeGeneratedImage } from "./util";
 import { describeImage } from "./describe";
 
 interface EditOpts {
@@ -24,6 +25,8 @@ interface EditOpts {
   attempts?: string;
   judge?: string;
   ref?: string[];
+  aspect?: string;
+  size?: string;
 }
 
 async function editOnce(
@@ -32,6 +35,7 @@ async function editOnce(
   instruction: string,
   model: string,
   refs: string[] = [],
+  imageConfig?: { aspectRatio?: string; imageSize?: string },
 ): Promise<boolean> {
   const ai = getGoogleAI();
 
@@ -50,6 +54,7 @@ async function editOnce(
     contents: [{ role: "user", parts }],
     config: {
       responseModalities: ["IMAGE", "TEXT"],
+      ...(imageConfig ? { imageConfig } : {}),
     },
   });
 
@@ -66,7 +71,7 @@ async function editOnce(
     return false;
   }
 
-  writeImageBuffer(output, buffer);
+  await writeGeneratedImage(output, buffer);
   return true;
 }
 
@@ -84,6 +89,8 @@ export function registerEdit(program: Command): void {
       (value: string, previous: string[]) => previous.concat(value),
       [] as string[],
     )
+    .option("--aspect <ratio>", "Aspect ratio (e.g. 1:1, 16:9, 3:2, 5:4)")
+    .option("--size <size>", "Image size: 512, 1K, 2K, 4K (default 1K)")
     .option("--inspect [question]", "Auto-describe the result after editing")
     .option("--attempts <n>", "Edit N times and keep the best")
     .option("--judge <criteria>", "AI judging criteria (requires --attempts)")
@@ -98,9 +105,14 @@ export function registerEdit(program: Command): void {
         const instruction = instructionParts.join(" ");
         const attempts = opts.attempts ? parseInt(opts.attempts, 10) : 1;
         const refs = opts.ref ?? [];
+        const imageConfig = buildImageConfig(opts);
 
         log.dim(`Using ${model}`);
         if (refs.length) log.dim(`+${refs.length} reference image(s)`);
+        if (imageConfig)
+          log.dim(
+            `Shape: ${[imageConfig.aspectRatio, imageConfig.imageSize].filter(Boolean).join(" ")}`,
+          );
         log.info(`Editing: "${instruction}"`);
 
         if (attempts > 1 && opts.judge) {
@@ -119,6 +131,7 @@ export function registerEdit(program: Command): void {
               instruction,
               model,
               refs,
+              imageConfig,
             );
             if (!ok) {
               log.warn(`Attempt ${i} failed to produce an image.`);
@@ -143,13 +156,20 @@ export function registerEdit(program: Command): void {
             process.exit(1);
           }
 
-          writeImageBuffer(output, readFileSync(bestFile));
+          await writeGeneratedImage(output, readFileSync(bestFile));
           for (const f of tempFiles) {
             if (existsSync(f)) unlinkSync(f);
           }
           log.success(`Best score: ${bestScore}/10`);
         } else {
-          const ok = await editOnce(input, output, instruction, model, refs);
+          const ok = await editOnce(
+            input,
+            output,
+            instruction,
+            model,
+            refs,
+            imageConfig,
+          );
           if (!ok) {
             log.error("No image in response.");
             process.exit(1);

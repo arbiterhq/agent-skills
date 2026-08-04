@@ -52,6 +52,40 @@ Gemini-powered subcommands need `GEMINI_API_KEY` in the environment (`GOOGLE_API
 - `--inspect [question]`: auto-describe the result after generation or editing
 - `--attempts <n>`: generate N times and keep the best (requires `--judge`)
 - `--judge <criteria>`: AI judging criteria for multi-attempt mode
+- `--ref <path>`: reference image, repeatable (see the two sections below)
+- `--aspect <ratio>`: `1:1` `2:3` `3:2` `3:4` `4:3` `4:5` `5:4` `9:16` `16:9` `21:9`
+- `--size <size>`: `512`, `1K`, `2K`, `4K` (default `1K`; uppercase `K`). Note `0.5K` is
+  documented but rejected by the API — use `512`.
+
+`--aspect`/`--size` are the only way to control output dimensions — the local
+`upscale`/`resize` tools resample, they do not add detail. Reach for `2K`/`4K`
+when the image contains **small type**, which is where these models fail first.
+Both flags validate against the lists above and exit on a typo rather than
+silently falling back to a 1K square.
+
+### `generate` Reference Images (`--ref`)
+
+`generate` takes any number of reference images via a repeatable `--ref <path>`,
+sent in order and followed by the prompt.
+
+The difference from `edit` matters. `edit` has a **primary input** that the model
+anchors on, so it tends to reproduce that image's layout and palette even when
+told not to. `generate --ref` has no primary — the references inform style,
+likeness, and vocabulary while the prompt alone dictates the composition. Use it
+when you want a **sibling** of the references rather than a variant of one.
+
+```bash
+# A new label in an existing brand family: same illustrated subject and
+# typography, but its own palette and layout — which an `edit` of either
+# reference actively resists.
+bin/art generate /tmp/new-label.png "$(cat prompts/new-label.md)" \
+  --ref art/label-a.png --ref art/label-b.png \
+  --aspect 1:1 --size 2K
+```
+
+Say in the prompt what the references are for ("the attached images are house
+style references only — match the typography and the subject, not their colours
+or framing devices").
 
 ### `edit` Multiple Reference Images (`--ref`)
 
@@ -71,6 +105,75 @@ bin/art edit light/flow.png dark/flow.png \
    dark mode matching the colours of the SECOND image." \
   --ref primers/dark.png
 ```
+
+## Writing Prompts That Work
+
+Distilled from Google's image-generation guide plus mistakes made in real use.
+Read this before writing a prompt; it will save you several wasted generations.
+
+### Describe a scene, do not list keywords
+
+The single biggest lever. These models are tuned for narrative description, not
+tag soup. `A photorealistic wide-angle shot of a vibrant coral reef teeming with
+tropical fish` beats `coral reef, fish, underwater`.
+
+Templates from the official guide, worth following literally:
+
+| Goal | Shape of the prompt |
+| --- | --- |
+| Photoreal | `A photorealistic [shot type] of [subject] in [setting]. [Lighting]. Shot from [angle] with a [lens].` |
+| Illustration / sticker | `A [style] of [subject with accessories/action]. The design features [bold outlines, cel-shading…] and [colour/background].` |
+| Text in an image | `Create a [image type] for [brand] with the text "[exact text]" in a [font style]. The design should be [style], with a [colour scheme].` |
+| Product mockup | `A high-resolution, studio-lit product photograph of [product] on [surface]. The lighting is [setup] to [purpose].` |
+| Negative space | `A minimalist composition featuring a single [subject] in the [position]. The background is a vast, empty [colour] canvas…` |
+
+### Text inside images is the #1 failure mode
+
+Small type garbles, and it garbles *plausibly* — it looks fine at thumbnail size
+and is wrong when you read it.
+
+- Describe the font **characteristically** ("clean bold sans-serif", "elegant
+  serif"), never by name. Font names are not honoured.
+- Use `--model gemini-3-pro-image-preview` for anything with real typography.
+- Raise `--size` to `2K` or `4K`. Small text needs pixels, and there is no
+  post-hoc fix: `upscale`/`resize` resample without adding detail.
+- Give the exact string in quotes, and constrain any list by count ("exactly
+  eight ingredients, once each"). Unconstrained lists sprout duplicates and
+  inventions.
+- **Always verify with `bin/art ocr <out> --plain`** and diff against the spec.
+  Do not trust a glance at the image, and do not trust `--judge` alone.
+
+### Subject consistency across images
+
+Pass prior images as `--ref` and let the pixels carry the likeness. Do **not**
+also write a prose description of the subject: your words compete with the
+references and pull the result toward the generic — a described dog becomes a
+stock labrador. Say this instead:
+
+> It must be the exact same dog: take his likeness directly from the attached
+> images, not from any description. Only his accessories and setting change.
+
+Per-model reference caps:
+
+| Model | Object refs | Character refs | Style refs |
+| --- | --- | --- | --- |
+| `gemini-3-pro-image-preview` | 6 | 5 | — |
+| `gemini-3.1-flash-image-preview` | 10 | 4 | 3 |
+
+### Framing and composition
+
+Say where the subject sits **relative to the frame**, or you get the model's
+default. "Filling the frame" yields a subject tangent to all four edges — for a
+circle, an inscribed disc touching each edge midpoint. That is usually right for
+a die-cut asset, but if you need clearance you must ask for it, and then verify
+by measuring pixels rather than by eye.
+
+### `--judge` is a hint, not a gate
+
+`--attempts N --judge` scores using the image model to emit structured JSON,
+which intermittently returns nothing parseable and **aborts the whole run**,
+discarding the attempts it already paid for. For anything that matters, generate
+N candidates in a shell loop and evaluate them yourself.
 
 ### Transparent Backgrounds: Not Supported Directly
 

@@ -12,9 +12,11 @@ import {
   IMAGEN_MODEL,
   extractImageFromResponse,
   judgeImage,
+  buildImageConfig,
+  type Part,
 } from "./google";
 import { log } from "./log";
-import { loadImageAsBase64, writeImageBuffer } from "./util";
+import { loadImageAsBase64, writeGeneratedImage } from "./util";
 import { describeImage } from "./describe";
 
 interface GenerateOpts {
@@ -22,19 +24,36 @@ interface GenerateOpts {
   inspect?: string | true;
   attempts?: string;
   judge?: string;
+  ref?: string[];
+  aspect?: string;
+  size?: string;
 }
 
 async function generateOnce(
   prompt: string,
   output: string,
   model: string,
+  refs: string[] = [],
+  imageConfig?: { aspectRatio?: string; imageSize?: string },
 ): Promise<boolean> {
   const ai = getGoogleAI();
+
+  // Reference images first, then the prompt. Unlike `edit` there is no primary
+  // input, so the model has nothing to anchor its composition on — say in the
+  // prompt what the references are for (style, likeness, palette).
+  const parts: Part[] = [];
+  for (const img of refs) {
+    const { base64, mimeType } = loadImageAsBase64(img);
+    parts.push({ inlineData: { data: base64, mimeType } });
+  }
+  parts.push({ text: prompt });
+
   const response = await ai.models.generateContent({
     model,
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    contents: [{ role: "user", parts }],
     config: {
       responseModalities: ["IMAGE", "TEXT"],
+      ...(imageConfig ? { imageConfig } : {}),
     },
   });
 
@@ -51,7 +70,7 @@ async function generateOnce(
     return false;
   }
 
-  writeImageBuffer(output, buffer);
+  await writeGeneratedImage(output, buffer);
   return true;
 }
 
@@ -62,6 +81,14 @@ export function registerGenerate(program: Command): void {
     .argument("<output>", "Output file path (e.g., /tmp/image.png)")
     .argument("<prompt...>", "Text prompt describing the desired image")
     .option("--model <model>", "Gemini model override")
+    .option(
+      "--ref <path>",
+      "Reference image to generate from (repeatable)",
+      (value: string, previous: string[]) => previous.concat(value),
+      [] as string[],
+    )
+    .option("--aspect <ratio>", "Aspect ratio (e.g. 1:1, 16:9, 3:2, 5:4)")
+    .option("--size <size>", "Image size: 512, 1K, 2K, 4K (default 1K)")
     .option("--inspect [question]", "Auto-describe the result after generation")
     .option("--attempts <n>", "Generate N times and keep the best")
     .option("--judge <criteria>", "AI judging criteria (requires --attempts)")
@@ -70,8 +97,15 @@ export function registerGenerate(program: Command): void {
         const model = opts.model ?? IMAGEN_MODEL;
         const prompt = promptParts.join(" ");
         const attempts = opts.attempts ? parseInt(opts.attempts, 10) : 1;
+        const refs = opts.ref ?? [];
+        const imageConfig = buildImageConfig(opts);
 
         log.dim(`Using ${model}`);
+        if (refs.length) log.dim(`+${refs.length} reference image(s)`);
+        if (imageConfig)
+          log.dim(
+            `Shape: ${[imageConfig.aspectRatio, imageConfig.imageSize].filter(Boolean).join(" ")}`,
+          );
         log.info(`Generating: "${prompt}"`);
 
         if (attempts > 1 && opts.judge) {
@@ -85,7 +119,13 @@ export function registerGenerate(program: Command): void {
             tempFiles.push(tempPath);
             log.step(i, attempts, `Generating attempt ${i}...`);
 
-            const ok = await generateOnce(prompt, tempPath, model);
+            const ok = await generateOnce(
+              prompt,
+              tempPath,
+              model,
+              refs,
+              imageConfig,
+            );
             if (!ok) {
               log.warn(`Attempt ${i} failed to produce an image.`);
               continue;
@@ -111,14 +151,20 @@ export function registerGenerate(program: Command): void {
 
           // Move best to final output, clean up temps
           const { readFileSync } = await import("fs");
-          writeImageBuffer(output, readFileSync(bestFile));
+          await writeGeneratedImage(output, readFileSync(bestFile));
           for (const f of tempFiles) {
             if (existsSync(f)) unlinkSync(f);
           }
           log.success(`Best score: ${bestScore}/10`);
         } else {
           // Single attempt
-          const ok = await generateOnce(prompt, output, model);
+          const ok = await generateOnce(
+            prompt,
+            output,
+            model,
+            refs,
+            imageConfig,
+          );
           if (!ok) {
             log.error("No image in response.");
             process.exit(1);
