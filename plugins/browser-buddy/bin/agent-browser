@@ -82,6 +82,39 @@ _help_flags() {
     | sed -E 's/^[[:space:],(]//' \
     | sort -u)"
 
+  # ...and definition lines were still not enough on their own, because the
+  # top-level help documents SUBCOMMAND options next to global ones. `-s,
+  # --selector <sel>` sits under `Snapshot Options:`; `-p`, `-v`, `-q` sit under
+  # a plain `Options:`. Since the guard allows root ∪ subcommand flags, every
+  # snapshot short flag was allowed on every subcommand — so `screenshot -s foo`
+  # passed, and the CLI swallowed `-s` as the selector positional and wrote a file
+  # named `-s`. That is the litter this guard exists to prevent, and it produced
+  # two of the observed filenames above.
+  #
+  # So at the root, keep long flags from any definition line (a wrong long flag is
+  # still caught by not being documented anywhere), but take SHORT flags only from
+  # the generic `Options:` block — the ones that really are global. A subcommand's
+  # own short flags still reach it through its own help: `snapshot --help` declares
+  # `-s`, so `snapshot -s main` is unaffected.
+  if [ -z "$sub" ]; then
+    local root_short
+    root_short="$(printf '%s\n' "$help" \
+      | awk '/^Options:[[:space:]]*$/ { inopt = 1; next }
+             /^[A-Za-z][A-Za-z0-9 \/-]*:[[:space:]]*$/ { inopt = 0 }
+             inopt' \
+      | grep -E '^[[:space:]]+-' \
+      | grep -oE '(^|[[:space:],(])--?[A-Za-z][A-Za-z0-9-]*' \
+      | sed -E 's/^[[:space:],(]//' \
+      | grep -E '^-[A-Za-z]$' \
+      | sort -u)"
+    # Drop every short flag, then add back only the global ones. If the `Options:`
+    # block could not be found, root_short is empty and all short flags fall away
+    # — strictly safe: a real global short flag then errors loudly instead of
+    # silently becoming a filename, and the message names the valid set.
+    flags="$(printf '%s\n%s\n' "$(printf '%s\n' "$flags" | grep -vE '^-[A-Za-z]$')" "$root_short" \
+      | sed '/^$/d' | sort -u)"
+  fi
+
   # Long flags additionally come from anywhere in a *subcommand's* help, not just
   # its dash-leading option lines. Real flags get declared on the `Usage:` line
   # (`read [--llms <index|full>]`), on the signature lines of nested subcommands
